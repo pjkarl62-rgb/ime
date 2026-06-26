@@ -1,56 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>IME Interface</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: transparent;
+            font-family: sans-serif;
+        }
+        #micBtn {
+            padding: 20px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        #micBtn:active { transform: scale(0.95); background-color: #0056b3; }
+        #micBtn:disabled { background-color: #ccc; cursor: not-allowed; }
+    </style>
+</head>
 <body>
-    <button id="startBtn" style="padding:20px; font-size:20px;">IME aktivieren</button>
-    <p id="status"></p>
+
+    <button id="micBtn">IME aktivieren</button>
 
     <script>
-        const btn = document.getElementById('startBtn');
-        const status = document.getElementById('status');
+        const btn = document.getElementById('micBtn');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-        btn.onclick = () => {
-            btn.style.display = 'none';
-            status.innerText = "Aktiviere Spracherkennung...";
-            startRecognition();
-        };
-
-        function startRecognition() {
-            // Browser-Kompatibilität prüfen
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-            if (!SpeechRecognition) {
-                status.innerText = "FEHLER: Dein Browser unterstützt keine Spracherkennung (nutze Chrome).";
-                return;
-            }
-
+        if (!SpeechRecognition) {
+            btn.innerText = "Nicht unterstützt";
+            btn.disabled = true;
+        } else {
             const recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = false;
             recognition.lang = 'de-DE';
+            recognition.continuous = false;
 
-            recognition.onstart = () => { status.innerText = "IME lauscht..."; };
+            btn.onclick = () => {
+                // AudioContext für moderne Browser "aufwecken"
+                if (window.AudioContext || window.webkitAudioContext) {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    audioCtx.resume();
+                }
 
-            recognition.onerror = (event) => {
-                status.innerText = "FEHLER: " + event.error;
-                console.error("Spracherkennungsfehler:", event.error);
+                btn.innerText = "Höre zu...";
+                recognition.start();
             };
 
             recognition.onresult = (event) => {
-                const text = event.results[event.results.length - 1][0].transcript.toLowerCase();
-                status.innerText = "Gehört: " + text;
-                console.log("Gehört:", text);
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                btn.innerText = "Verarbeite...";
 
-                if (text.includes("setup ime")) {
-                    window.parent.postMessage({ type: 'openSection', section: '#sectionIME' }, "*");
-                } else if (text.includes("kalender")) {
-                    window.parent.postMessage({ type: 'openSection', section: '#sectionCALENDER' }, "*");
-                } else if (text.includes("ime")) {
-                    window.parent.postMessage({ type: 'processVoice', transcript: text.split("ime")[1].trim() }, "*");
-                }
+                // Intent-Erkennung
+                let command = 'chat';
+                if (transcript.includes('ime')) command = 'start_ime';
+                else if (transcript.includes('setup')) command = 'go_setup';
+                else if (transcript.includes('kalender') || transcript.includes('online call')) command = 'go_calendar';
+
+                // Nachricht an Wix senden
+                window.parent.postMessage({ type: command, text: transcript }, "*");
+
+                setTimeout(() => { btn.innerText = "IME aktivieren"; }, 2000);
             };
 
-            recognition.start();
+            recognition.onerror = (e) => {
+                console.error("Spracherkennung Fehler:", e.error);
+                btn.innerText = "Fehler - Neu versuchen";
+            };
         }
+
+        // Sprachausgabe empfangen
+        window.onmessage = (event) => {
+            if (event.data && event.data.type === 'speak') {
+                // Alte Sprachausgaben stoppen, um Überschneidungen zu vermeiden
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(event.data.text);
+                utterance.lang = 'de-DE';
+                window.speechSynthesis.speak(utterance);
+            }
+        };
     </script>
 </body>
-</html>‚
+</html>
