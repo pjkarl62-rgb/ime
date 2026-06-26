@@ -1,78 +1,56 @@
 <!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <title>IME Voice Bridge</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: transparent;
-            font-family: sans-serif;
-        }
-        #startBtn {
-            padding: 20px 40px;
-            font-size: 18px;
-            cursor: pointer;
-            background: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 50px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-    </style>
-</head>
+<html>
 <body>
-
-    <button id="startBtn">IME aktivieren</button>
+    <button id="startBtn" style="padding:20px; font-size:20px;">IME aktivieren</button>
+    <p id="status"></p>
 
     <script>
         const btn = document.getElementById('startBtn');
+        const status = document.getElementById('status');
 
         btn.onclick = () => {
             btn.style.display = 'none';
+            status.innerText = "Aktiviere Spracherkennung...";
             startRecognition();
         };
 
         function startRecognition() {
+            // Browser-Kompatibilität prüfen
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
             if (!SpeechRecognition) {
-                alert("Dein Browser unterstützt keine Spracherkennung.");
+                status.innerText = "FEHLER: Dein Browser unterstützt keine Spracherkennung (nutze Chrome).";
                 return;
             }
 
             const recognition = new SpeechRecognition();
             recognition.continuous = true;
+            recognition.interimResults = false;
             recognition.lang = 'de-DE';
+
+            recognition.onstart = () => { status.innerText = "IME lauscht..."; };
+
+            recognition.onerror = (event) => {
+                status.innerText = "FEHLER: " + event.error;
+                console.error("Spracherkennungsfehler:", event.error);
+            };
 
             recognition.onresult = (event) => {
                 const text = event.results[event.results.length - 1][0].transcript.toLowerCase();
+                status.innerText = "Gehört: " + text;
                 console.log("Gehört:", text);
 
                 if (text.includes("setup ime")) {
                     window.parent.postMessage({ type: 'openSection', section: '#sectionIME' }, "*");
-                } else if (text.includes("kalender") || text.includes("termin")) {
+                } else if (text.includes("kalender")) {
                     window.parent.postMessage({ type: 'openSection', section: '#sectionCALENDER' }, "*");
                 } else if (text.includes("ime")) {
-                    const command = text.split("ime")[1].trim();
-                    window.parent.postMessage({ type: 'processVoice', transcript: command }, "*");
+                    window.parent.postMessage({ type: 'processVoice', transcript: text.split("ime")[1].trim() }, "*");
                 }
             };
 
             recognition.start();
-            recognition.onend = () => recognition.start();
         }
-
-        window.addEventListener("message", (event) => {
-            if (event.data.type === 'play') {
-                const utterance = new SpeechSynthesisUtterance(event.data.text);
-                utterance.lang = 'de-DE';
-                window.speechSynthesis.speak(utterance);
-            }
-        });
     </script>
 </body>
-</html>
+</html>‚
