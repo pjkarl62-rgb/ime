@@ -2,27 +2,39 @@
 <html lang="de">
 <body>
     <button id="micBtn">Mikrofon aktivieren</button>
-    <p id="status"></p>
+    <p id="debug">Status: Bereit</p>
 
     <script>
         const btn = document.getElementById('micBtn');
-        const status = document.getElementById('status');
+        const debug = document.getElementById('debug');
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
 
         recognition.lang = 'de-DE';
+        recognition.continuous = false;
+        recognition.interimResults = false;
 
         btn.onclick = () => {
-            status.innerText = "Höre zu...";
-            recognition.start();
+            debug.innerText = "Status: Starte...";
+            try {
+                recognition.start();
+            } catch (e) {
+                debug.innerText = "Error: " + e.message;
+            }
         };
+
+        // Das hier ist der wichtigste Teil für dein Debugging
+        recognition.onstart = () => { debug.innerText = "Status: Höre zu..."; };
 
         recognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
-            status.innerText = "Erkannt: " + transcript;
-            // Sende den Text an die Wix-Seite
+            debug.innerText = "Erfolg: " + transcript;
             window.parent.postMessage({ type: 'transcript', text: transcript }, "*");
+        };
+
+        recognition.onerror = (event) => {
+            debug.innerText = "Fehler: " + event.error;
         };
     </script>
 </body>
-</html>
+</html>‚
