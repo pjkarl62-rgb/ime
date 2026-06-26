@@ -45,17 +45,29 @@
             recognition.lang = 'de-DE';
             recognition.continuous = false;
 
-            btn.onclick = () => {
-                // AudioContext für moderne Browser "aufwecken"
-                if (window.AudioContext || window.webkitAudioContext) {
-                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    audioCtx.resume();
-                }
+            btn.onclick = async () => {
+                            // Prüfe, ob AudioContext überhaupt erlaubt ist
+                            try {
+                                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                                if (AudioContext) {
+                                    const audioCtx = new AudioContext();
+                                    if (audioCtx.state === 'suspended') {
+                                        await audioCtx.resume();
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn("AudioContext blockiert, fahre fort...");
+                            }
 
-                btn.innerText = "Höre zu...";
-                recognition.start();
-            };
-
+                            btn.innerText = "Höre zu...";
+                            try {
+                                recognition.start();
+                            } catch (err) {
+                                console.error("Erkennungs-Fehler:", err);
+                                btn.innerText = "Mikrofon blockiert!";
+                            }
+                        };
+                        
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript.toLowerCase();
                 btn.innerText = "Verarbeite...";
