@@ -1,208 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IME Microphone Debug V2</title>
+
+<title>IME Microphone</title>
 
 <style>
-    body{
-        font-family: Arial, sans-serif;
-        background:#111;
-        color:white;
-        text-align:center;
-        padding-top:60px;
-    }
+body{
+    font-family:Arial,sans-serif;
+    background:#111;
+    color:white;
+    text-align:center;
+    padding-top:80px;
+}
 
-    button{
-        padding:15px 30px;
-        font-size:20px;
-        cursor:pointer;
-        margin-top:20px;
-    }
+button{
+    padding:15px 30px;
+    margin:10px;
+    font-size:18px;
+    cursor:pointer;
+}
 
-    #status{
-        margin-top:30px;
-        font-size:24px;
-    }
+#status{
+    margin-top:30px;
+    font-size:22px;
+}
 
-    #log{
-        margin-top:40px;
-        width:90%;
-        max-width:900px;
-        margin-left:auto;
-        margin-right:auto;
-        background:#222;
-        border-radius:10px;
-        padding:20px;
-        text-align:left;
-        min-height:250px;
-        white-space:pre-wrap;
-        overflow-y:auto;
-    }
+#timer{
+    margin-top:20px;
+    font-size:18px;
+}
+
+#result{
+    margin-top:40px;
+    width:80%;
+    max-width:900px;
+    margin-left:auto;
+    margin-right:auto;
+    text-align:left;
+    background:#222;
+    padding:20px;
+    border-radius:10px;
+    min-height:120px;
+}
 </style>
 </head>
 
 <body>
 
-<h1>🎤 IME Microphone Debug V2</h1>
+<h1>🎤 IME Microphone</h1>
 
 <button id="startBtn">
-    Activate Microphone
+Start Recording
+</button>
+
+<button id="stopBtn" disabled>
+Stop Recording
 </button>
 
 <div id="status">
-    Waiting for activation...
+Waiting...
 </div>
 
-<div id="log"></div>
+<div id="timer"></div>
+
+<div id="result"></div>
 
 <script>
 
-let recognition;
+let mediaRecorder;
+let audioChunks = [];
+let timerInterval;
+let seconds = 0;
 
 const startBtn = document.getElementById("startBtn");
-const statusDiv = document.getElementById("status");
-const logDiv = document.getElementById("log");
+const stopBtn = document.getElementById("stopBtn");
 
-function log(message) {
-    console.log(message);
-    logDiv.innerHTML += message + "<br>";
-    logDiv.scrollTop = logDiv.scrollHeight;
-}
+const statusDiv = document.getElementById("status");
+const timerDiv = document.getElementById("timer");
+const resultDiv = document.getElementById("result");
 
 startBtn.onclick = async () => {
 
-    startBtn.disabled = true;
-
     try {
 
-        log("Requesting microphone permission...");
+        const stream =
+            await navigator.mediaDevices.getUserMedia({
+                audio:true
+            });
 
-        const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true
-        });
+        audioChunks = [];
 
-        log("✅ Microphone permission granted.");
-        log("Audio tracks found: " + stream.getAudioTracks().length);
+        mediaRecorder =
+            new MediaRecorder(stream);
 
-        startRecognition();
+        mediaRecorder.ondataavailable =
+            event => {
+
+            audioChunks.push(
+                event.data
+            );
+        };
+
+        mediaRecorder.onstop =
+            async () => {
+
+            clearInterval(
+                timerInterval
+            );
+
+            const audioBlob =
+                new Blob(
+                    audioChunks,
+                    {
+                        type:"audio/webm"
+                    }
+                );
+
+            await sendAudioToWix(
+                audioBlob
+            );
+        };
+
+        mediaRecorder.start();
+
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+
+        statusDiv.innerText =
+            "🎤 Recording...";
+
+        seconds = 0;
+
+        timerInterval =
+            setInterval(() => {
+
+            seconds++;
+
+            timerDiv.innerText =
+                seconds +
+                " seconds";
+
+        },1000);
 
     }
-    catch(error) {
+    catch(error){
 
-        log("❌ getUserMedia error:");
-        log(error.name);
-        log(error.message);
-
-        startBtn.disabled = false;
+        statusDiv.innerText =
+            error.message;
     }
 };
 
-function startRecognition() {
+stopBtn.onclick = () => {
 
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
+    mediaRecorder.stop();
 
-    if (!SpeechRecognition) {
-        log("❌ SpeechRecognition not available in this browser.");
-        return;
-    }
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
 
-    log("SpeechRecognition object found.");
+    statusDiv.innerText =
+        "Uploading audio...";
+};
 
-    recognition = new SpeechRecognition();
+async function sendAudioToWix(
+    audioBlob
+){
 
-    recognition.lang = "en-US";
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 5;
+    const formData =
+        new FormData();
 
-    recognition.onstart = () => {
-        log("🎤 recognition.onstart");
-        statusDiv.innerText = "Listening...";
-    };
+    formData.append(
+        "audio",
+        audioBlob,
+        "voice.webm"
+    );
 
-    recognition.onaudiostart = () => {
-        log("🔊 onaudiostart");
-    };
+    try{
 
-    recognition.onsoundstart = () => {
-        log("🔈 onsoundstart");
-    };
-
-    recognition.onspeechstart = () => {
-        log("🗣 onspeechstart");
-    };
-
-    recognition.onresult = (event) => {
-
-        log("✅ onresult fired");
-
-        for(let i = event.resultIndex; i < event.results.length; i++) {
-
-            const transcript =
-                event.results[i][0].transcript;
-
-            const confidence =
-                event.results[i][0].confidence;
-
-            log(
-                "Recognized: " +
-                transcript +
-                " | confidence: " +
-                confidence
+        const response =
+            await fetch(
+                "https://www.visions-real.com/_functions/v2_voice_upload",
+                {
+                    method:"POST",
+                    body:formData
+                }
             );
 
-            const text = transcript.toUpperCase();
+        const data =
+            await response.json();
 
-            if(
-                text.includes("HELLO IME") ||
-                text.includes("HI IME") ||
-                text.includes("HEY IME") ||
-                text.includes("IME")
-            ) {
-                log("🚀 IME wakeword detected");
-            }
-        }
-    };
+        resultDiv.innerHTML =
+            "<b>Transcript:</b><br><br>" +
+            data.transcript;
 
-    recognition.onspeechend = () => {
-        log("🛑 onspeechend");
-    };
+        statusDiv.innerText =
+            "Ready";
 
-    recognition.onsoundend = () => {
-        log("🔇 onsoundend");
-    };
-
-    recognition.onaudioend = () => {
-        log("🎧 onaudioend");
-    };
-
-    recognition.onerror = (event) => {
-        log("❌ recognition.onerror");
-        log("Error: " + event.error);
-    };
-
-    recognition.onend = () => {
-        log("🏁 recognition.onend");
-        statusDiv.innerText = "Recognition finished";
-        startBtn.disabled = false;
-        startBtn.innerText = "Start Again";
-    };
-
-    try {
-        recognition.start();
-        log("recognition.start() executed");
     }
-    catch(error) {
-        log("❌ start() exception");
-        log(error.message);
+    catch(error){
+
+        statusDiv.innerText =
+            error.message;
     }
 }
 
 </script>
 
 </body>
+
 </html>
