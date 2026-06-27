@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>IME Microphone</title>
+
+<style>
+body{
+    font-family: Arial;
+    text-align:center;
+    padding-top:50px;
+}
+
+#status{
+    margin-top:20px;
+    font-size:20px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>IME Microphone</h2>
+
+<button id="startBtn">
+    Activate Microphone
+</button>
+
+<div id="status">
+    Waiting for activation...
+</div>
+
+<script>
+
+let recognition;
+
+document.getElementById("startBtn").onclick = async () => {
+
+    try {
+
+        await navigator.mediaDevices.getUserMedia({
+            audio:true
+        });
+
+        startRecognition();
+
+    }
+    catch(err){
+
+        document.getElementById("status").innerText =
+            "Microphone permission denied";
+
+        console.log(err);
+    }
+
+};
+
+function startRecognition(){
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if(!SpeechRecognition){
+
+        document.getElementById("status").innerText =
+            "Speech recognition not supported";
+
+        return;
+    }
+
+    recognition = new SpeechRecognition();
+
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => {
+
+        document.getElementById("status").innerText =
+            "🎤 Listening...";
+    };
+
+    recognition.onresult = (event) => {
+
+        const result =
+            event.results[event.results.length - 1][0]
+            .transcript
+            .trim();
+
+        console.log("Recognized:", result);
+
+        sendToWix(result);
+    };
+
+    recognition.onend = () => {
+
+        recognition.start();
+    };
+
+    recognition.start();
+
+    setTimeout(() => {
+
+        if(window.opener){
+            window.opener.focus();
+        }
+
+    },1000);
+}
+
+function sendToWix(text){
+
+    fetch(
+        "https://www.visions-real.com/_functions/v2_voiceInput",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                transcript:text
+            })
+        }
+    );
+}
+
+</script>
+
+</body>
+</html>
