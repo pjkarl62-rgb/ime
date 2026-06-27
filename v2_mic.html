@@ -8,17 +8,25 @@
 <style>
     body {
         font-family: Arial, sans-serif;
-        text-align: center;
         background: #111;
         color: white;
-        padding-top: 80px;
+        text-align: center;
+        padding-top: 60px;
+        margin: 0;
     }
 
     h1 {
-        margin-bottom: 30px;
+        margin-bottom: 20px;
+    }
+
+    p {
+        max-width: 700px;
+        margin: auto;
+        line-height: 1.5;
     }
 
     button {
+        margin-top: 30px;
         padding: 15px 30px;
         font-size: 18px;
         cursor: pointer;
@@ -26,32 +34,32 @@
 
     #status {
         margin-top: 30px;
-        font-size: 20px;
+        font-size: 22px;
+        font-weight: bold;
     }
 
     #log {
-        margin-top: 30px;
-        width: 80%;
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto;
-        text-align: left;
+        margin: 40px auto;
+        width: 85%;
+        max-width: 900px;
         background: #222;
-        padding: 20px;
         border-radius: 10px;
-        min-height: 150px;
+        padding: 20px;
+        text-align: left;
+        min-height: 250px;
         overflow-y: auto;
+        white-space: pre-wrap;
     }
 </style>
 </head>
 
 <body>
 
-<h1>🎤 IME Microphone Listener V2</h1>
+<h1>🎤 IME V2 Microphone Listener</h1>
 
 <p>
-Click once to enable microphone access.<br>
-After activation you will automatically return to IME.<br>
+Click once to activate the microphone.<br>
+After activation you will automatically return to your IME page.<br>
 This tab will continue listening in the background.
 </p>
 
@@ -68,39 +76,40 @@ This tab will continue listening in the background.
 <script>
 
 let recognition = null;
-let recognitionRunning = false;
+let listening = false;
 
+const startBtn = document.getElementById("startBtn");
 const statusDiv = document.getElementById("status");
 const logDiv = document.getElementById("log");
-const startBtn = document.getElementById("startBtn");
 
 function log(message) {
 
     console.log(message);
 
-    logDiv.innerHTML += message + "<br>";
+    logDiv.innerHTML += message + "\n";
     logDiv.scrollTop = logDiv.scrollHeight;
 }
 
 startBtn.onclick = async () => {
 
-    startBtn.disabled = true;
-    startBtn.innerText = "Microphone Active";
+    if (listening) {
+        return;
+    }
 
     try {
+
+        startBtn.disabled = true;
+        startBtn.innerText = "Microphone Active";
 
         await navigator.mediaDevices.getUserMedia({
             audio: true
         });
 
-        log("Microphone permission granted.");
+        log("✅ Microphone permission granted.");
 
         startRecognition();
 
-    }
-    catch(error) {
-
-        console.error(error);
+    } catch (error) {
 
         startBtn.disabled = false;
         startBtn.innerText = "Activate Microphone";
@@ -108,7 +117,7 @@ startBtn.onclick = async () => {
         statusDiv.innerText =
             "❌ Microphone permission denied.";
 
-        log("Microphone permission denied.");
+        log("Microphone error: " + error.message);
     }
 };
 
@@ -124,39 +133,41 @@ function startRecognition() {
             "❌ Speech recognition not supported.";
 
         log("SpeechRecognition not supported.");
+
         return;
     }
 
     recognition = new SpeechRecognition();
 
-    recognition.continuous = true;
+    /*
+        Brave works much more reliably with these settings.
+    */
+
+    recognition.continuous = false;
     recognition.interimResults = false;
+    recognition.maxAlternatives = 5;
 
     /*
-        For the first version we use English.
-        Later this will come from IME configuration.
+        IME V2 starts in English.
+        Later this value will come from Wix.
     */
 
     recognition.lang = "en-US";
 
     recognition.onstart = () => {
 
-        recognitionRunning = true;
+        listening = true;
 
         statusDiv.innerText =
             "🎤 Listening for IME commands...";
 
-        log("SpeechRecognition started.");
+        log("🎤 SpeechRecognition started.");
     };
 
     recognition.onresult = (event) => {
 
-        console.log("Speech event received");
-
         const transcript =
-            event.results[event.results.length - 1][0]
-            .transcript
-            .trim();
+            event.results[0][0].transcript.trim();
 
         log("Recognized: " + transcript);
 
@@ -170,26 +181,26 @@ function startRecognition() {
 
     recognition.onend = () => {
 
-        recognitionRunning = false;
+        listening = false;
 
         log("Recognition ended.");
 
+        /*
+            Restart listener automatically
+        */
+
         setTimeout(() => {
 
-            if (!recognitionRunning) {
+            try {
 
-                try {
+                recognition.start();
 
-                    recognition.start();
+            } catch (error) {
 
-                }
-                catch(error) {
-
-                    log(
-                        "Restart skipped: " +
-                        error.message
-                    );
-                }
+                log(
+                    "Restart skipped: " +
+                    error.message
+                );
             }
 
         }, 1000);
@@ -199,64 +210,156 @@ function startRecognition() {
 
         recognition.start();
 
-    }
-    catch(error) {
+    } catch (error) {
 
-        log(error.message);
+        log("Start error: " + error.message);
     }
-
-    statusDiv.innerText =
-        "🎤 IME is listening in the background.";
 
     /*
-        Return user automatically to Wix page
+        Return user to Wix page
     */
 
     setTimeout(() => {
 
         if (window.opener) {
 
-            log("Returning to IME...");
+            log(
+                "Returning to IME page..."
+            );
 
             try {
+
                 window.opener.focus();
-            }
-            catch(error) {
-                log("Could not focus opener window.");
+
+            } catch (error) {
+
+                log(
+                    "Could not focus IME page."
+                );
             }
         }
 
-    }, 1000);
+    }, 1500);
 }
 
 function parseCommand(text) {
 
     const command = text.toUpperCase();
 
+    const wakeWords = [
+        "HELLO IME",
+        "HI IME",
+        "HEY IME",
+        "IME"
+    ];
+
+    const wakeDetected = wakeWords.some(
+        wakeWord => command.includes(wakeWord)
+    );
+
+    if (!wakeDetected) {
+
+        log("No IME wake word detected.");
+
+        return;
+    }
+
+    log("✅ IME wake word detected.");
+
     /*
-        Future command parser
+        Future command parsing
     */
 
-    if (command.startsWith("IME")) {
+    let payload = {
+        wake: true,
+        command: null,
+        bot: null,
+        query: null,
+        transcript: command
+    };
 
-        log("IME wake word detected.");
+    /*
+        IME SETUP
+    */
 
-        /*
-            Send to Wix backend later
-        */
+    if (command.includes("SETUP")) {
 
-        sendToWix(command);
+        payload.command = "SETUP";
     }
+
+    /*
+        IME CALENDAR
+    */
+
+    else if (command.includes("CALENDAR")) {
+
+        payload.command = "CALENDAR";
+    }
+
+    /*
+        IME CONTACT
+    */
+
+    else if (command.includes("CONTACT")) {
+
+        payload.command = "CONTACT";
+    }
+
+    /*
+        IME ASK JEFF TESLA NEWS
+    */
+
+    else if (command.includes("ASK")) {
+
+        payload.command = "ASK";
+
+        const askIndex =
+            command.indexOf("ASK");
+
+        const afterAsk =
+            command.substring(
+                askIndex + 3
+            ).trim();
+
+        if (afterAsk.length > 0) {
+
+            const words =
+                afterAsk.split(" ");
+
+            payload.bot = words[0];
+
+            if (words.length > 1) {
+
+                payload.query =
+                    words
+                    .slice(1)
+                    .join(" ");
+            }
+        }
+    }
+
+    sendToWix(payload);
 }
 
-function sendToWix(text) {
+function sendToWix(payload) {
+
+    log(
+        "Sending to Wix:"
+    );
+
+    log(
+        JSON.stringify(
+            payload,
+            null,
+            2
+        )
+    );
 
     /*
-        Placeholder for V2 API endpoint.
-        Will be implemented in Wix backend.
-    */
+        V2 endpoint
 
-    log("Sending to Wix: " + text);
+        Uncomment when backend exists.
+    */
 
     /*
     fetch(
@@ -264,13 +367,27 @@ function sendToWix(text) {
         {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type":
+                    "application/json"
             },
-            body: JSON.stringify({
-                transcript: text
-            })
+            body: JSON.stringify(
+                payload
+            )
         }
-    );
+    )
+    .then(response => response.json())
+    .then(data => {
+        log(
+            "Wix response: " +
+            JSON.stringify(data)
+        );
+    })
+    .catch(error => {
+        log(
+            "Send error: " +
+            error.message
+        );
+    });
     */
 }
 
