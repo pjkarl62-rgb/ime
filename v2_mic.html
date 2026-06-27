@@ -1,72 +1,129 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>IME Microphone</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IME V2 Microphone Listener</title>
 
 <style>
-body{
-    font-family: Arial;
-    text-align:center;
-    padding-top:50px;
-}
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: #111;
+        color: white;
+        padding-top: 80px;
+    }
 
-#status{
-    margin-top:20px;
-    font-size:20px;
-}
+    h1 {
+        margin-bottom: 30px;
+    }
+
+    button {
+        padding: 15px 30px;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    #status {
+        margin-top: 30px;
+        font-size: 20px;
+    }
+
+    #log {
+        margin-top: 30px;
+        width: 80%;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: left;
+        background: #222;
+        padding: 20px;
+        border-radius: 10px;
+        min-height: 150px;
+        overflow-y: auto;
+    }
 </style>
-
 </head>
 
 <body>
 
-<h2>IME Microphone</h2>
+<h1>🎤 IME Microphone Listener V2</h1>
+
+<p>
+Click once to enable microphone access.<br>
+After activation you will automatically return to IME.<br>
+This tab will continue listening in the background.
+</p>
 
 <button id="startBtn">
     Activate Microphone
 </button>
 
 <div id="status">
-    Waiting for activation...
+    Waiting for microphone activation...
 </div>
+
+<div id="log"></div>
 
 <script>
 
-let recognition;
+let recognition = null;
+let recognitionRunning = false;
 
-document.getElementById("startBtn").onclick = async () => {
+const statusDiv = document.getElementById("status");
+const logDiv = document.getElementById("log");
+const startBtn = document.getElementById("startBtn");
+
+function log(message) {
+
+    console.log(message);
+
+    logDiv.innerHTML += message + "<br>";
+    logDiv.scrollTop = logDiv.scrollHeight;
+}
+
+startBtn.onclick = async () => {
+
+    startBtn.disabled = true;
+    startBtn.innerText = "Microphone Active";
 
     try {
 
         await navigator.mediaDevices.getUserMedia({
-            audio:true
+            audio: true
         });
+
+        log("Microphone permission granted.");
 
         startRecognition();
 
     }
-    catch(err){
+    catch(error) {
 
-        document.getElementById("status").innerText =
-            "Microphone permission denied";
+        console.error(error);
 
-        console.log(err);
+        startBtn.disabled = false;
+        startBtn.innerText = "Activate Microphone";
+
+        statusDiv.innerText =
+            "❌ Microphone permission denied.";
+
+        log("Microphone permission denied.");
     }
-
 };
 
-function startRecognition(){
+function startRecognition() {
 
     const SpeechRecognition =
         window.SpeechRecognition ||
         window.webkitSpeechRecognition;
 
-    if(!SpeechRecognition){
+    if (!SpeechRecognition) {
 
-        document.getElementById("status").innerText =
-            "Speech recognition not supported";
+        statusDiv.innerText =
+            "❌ Speech recognition not supported.";
 
+        log("SpeechRecognition not supported.");
         return;
     }
 
@@ -75,56 +132,146 @@ function startRecognition(){
     recognition.continuous = true;
     recognition.interimResults = false;
 
+    /*
+        For the first version we use English.
+        Later this will come from IME configuration.
+    */
+
     recognition.lang = "en-US";
 
     recognition.onstart = () => {
 
-        document.getElementById("status").innerText =
-            "🎤 Listening...";
+        recognitionRunning = true;
+
+        statusDiv.innerText =
+            "🎤 Listening for IME commands...";
+
+        log("SpeechRecognition started.");
     };
 
     recognition.onresult = (event) => {
 
-        const result =
+        console.log("Speech event received");
+
+        const transcript =
             event.results[event.results.length - 1][0]
             .transcript
             .trim();
 
-        console.log("Recognized:", result);
+        log("Recognized: " + transcript);
 
-        sendToWix(result);
+        parseCommand(transcript);
+    };
+
+    recognition.onerror = (event) => {
+
+        log("Recognition error: " + event.error);
     };
 
     recognition.onend = () => {
 
-        recognition.start();
+        recognitionRunning = false;
+
+        log("Recognition ended.");
+
+        setTimeout(() => {
+
+            if (!recognitionRunning) {
+
+                try {
+
+                    recognition.start();
+
+                }
+                catch(error) {
+
+                    log(
+                        "Restart skipped: " +
+                        error.message
+                    );
+                }
+            }
+
+        }, 1000);
     };
 
-    recognition.start();
+    try {
+
+        recognition.start();
+
+    }
+    catch(error) {
+
+        log(error.message);
+    }
+
+    statusDiv.innerText =
+        "🎤 IME is listening in the background.";
+
+    /*
+        Return user automatically to Wix page
+    */
 
     setTimeout(() => {
 
-        if(window.opener){
-            window.opener.focus();
+        if (window.opener) {
+
+            log("Returning to IME...");
+
+            try {
+                window.opener.focus();
+            }
+            catch(error) {
+                log("Could not focus opener window.");
+            }
         }
 
-    },1000);
+    }, 1000);
 }
 
-function sendToWix(text){
+function parseCommand(text) {
 
+    const command = text.toUpperCase();
+
+    /*
+        Future command parser
+    */
+
+    if (command.startsWith("IME")) {
+
+        log("IME wake word detected.");
+
+        /*
+            Send to Wix backend later
+        */
+
+        sendToWix(command);
+    }
+}
+
+function sendToWix(text) {
+
+    /*
+        Placeholder for V2 API endpoint.
+        Will be implemented in Wix backend.
+    */
+
+    log("Sending to Wix: " + text);
+
+    /*
     fetch(
         "https://www.visions-real.com/_functions/v2_voiceInput",
         {
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
             },
-            body:JSON.stringify({
-                transcript:text
+            body: JSON.stringify({
+                transcript: text
             })
         }
     );
+    */
 }
 
 </script>
