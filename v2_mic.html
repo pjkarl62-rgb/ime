@@ -3,21 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IME Microphone Test</title>
+<title>IME Microphone Debug V2</title>
 
 <style>
     body{
         font-family: Arial, sans-serif;
-        text-align:center;
-        margin-top:100px;
         background:#111;
         color:white;
+        text-align:center;
+        padding-top:60px;
     }
 
     button{
         padding:15px 30px;
         font-size:20px;
         cursor:pointer;
+        margin-top:20px;
     }
 
     #status{
@@ -27,23 +28,24 @@
 
     #log{
         margin-top:40px;
-        width:80%;
-        max-width:800px;
+        width:90%;
+        max-width:900px;
         margin-left:auto;
         margin-right:auto;
-        text-align:left;
         background:#222;
-        padding:20px;
         border-radius:10px;
-        min-height:200px;
+        padding:20px;
+        text-align:left;
+        min-height:250px;
         white-space:pre-wrap;
+        overflow-y:auto;
     }
 </style>
 </head>
 
 <body>
 
-<h1>🎤 IME Microphone Test</h1>
+<h1>🎤 IME Microphone Debug V2</h1>
 
 <button id="startBtn">
     Activate Microphone
@@ -57,16 +59,14 @@
 
 <script>
 
-let recognition = null;
+let recognition;
 
 const startBtn = document.getElementById("startBtn");
 const statusDiv = document.getElementById("status");
 const logDiv = document.getElementById("log");
 
-function log(message){
-
+function log(message) {
     console.log(message);
-
     logDiv.innerHTML += message + "<br>";
     logDiv.scrollTop = logDiv.scrollHeight;
 }
@@ -75,107 +75,130 @@ startBtn.onclick = async () => {
 
     startBtn.disabled = true;
 
-    try{
+    try {
 
         log("Requesting microphone permission...");
 
-        await navigator.mediaDevices.getUserMedia({
-            audio:true
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true
         });
 
-        log("Microphone permission granted.");
+        log("✅ Microphone permission granted.");
+        log("Audio tracks found: " + stream.getAudioTracks().length);
 
         startRecognition();
 
     }
-    catch(error){
+    catch(error) {
 
-        log(
-            "Microphone error: " +
-            error.message
-        );
+        log("❌ getUserMedia error:");
+        log(error.name);
+        log(error.message);
 
         startBtn.disabled = false;
     }
 };
 
-function startRecognition(){
+function startRecognition() {
 
     const SpeechRecognition =
         window.SpeechRecognition ||
         window.webkitSpeechRecognition;
 
-    if(!SpeechRecognition){
-
-        log(
-            "SpeechRecognition not supported."
-        );
-
+    if (!SpeechRecognition) {
+        log("❌ SpeechRecognition not available in this browser.");
         return;
     }
 
+    log("SpeechRecognition object found.");
+
     recognition = new SpeechRecognition();
 
+    recognition.lang = "en-US";
     recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 5;
 
-    recognition.lang = "en-US";
-
     recognition.onstart = () => {
+        log("🎤 recognition.onstart");
+        statusDiv.innerText = "Listening...";
+    };
 
-        statusDiv.innerText =
-            "🎤 Listening...";
+    recognition.onaudiostart = () => {
+        log("🔊 onaudiostart");
+    };
 
-        log(
-            "SpeechRecognition started."
-        );
+    recognition.onsoundstart = () => {
+        log("🔈 onsoundstart");
+    };
+
+    recognition.onspeechstart = () => {
+        log("🗣 onspeechstart");
     };
 
     recognition.onresult = (event) => {
 
-        const transcript =
-            event.results[0][0].transcript;
+        log("✅ onresult fired");
 
-        log(
-            "Recognized: " +
-            transcript
-        );
+        for(let i = event.resultIndex; i < event.results.length; i++) {
+
+            const transcript =
+                event.results[i][0].transcript;
+
+            const confidence =
+                event.results[i][0].confidence;
+
+            log(
+                "Recognized: " +
+                transcript +
+                " | confidence: " +
+                confidence
+            );
+
+            const text = transcript.toUpperCase();
+
+            if(
+                text.includes("HELLO IME") ||
+                text.includes("HI IME") ||
+                text.includes("HEY IME") ||
+                text.includes("IME")
+            ) {
+                log("🚀 IME wakeword detected");
+            }
+        }
+    };
+
+    recognition.onspeechend = () => {
+        log("🛑 onspeechend");
+    };
+
+    recognition.onsoundend = () => {
+        log("🔇 onsoundend");
+    };
+
+    recognition.onaudioend = () => {
+        log("🎧 onaudioend");
     };
 
     recognition.onerror = (event) => {
-
-        log(
-            "Recognition error: " +
-            event.error
-        );
+        log("❌ recognition.onerror");
+        log("Error: " + event.error);
     };
 
     recognition.onend = () => {
-
-        statusDiv.innerText =
-            "Recognition finished.";
-
-        log(
-            "Recognition ended."
-        );
-
+        log("🏁 recognition.onend");
+        statusDiv.innerText = "Recognition finished";
         startBtn.disabled = false;
-        startBtn.innerText =
-            "Start Again";
+        startBtn.innerText = "Start Again";
     };
 
-    try{
-
+    try {
         recognition.start();
-
+        log("recognition.start() executed");
     }
-    catch(error){
-
-        log(
-            "Start error: " +
-            error.message
-        );
+    catch(error) {
+        log("❌ start() exception");
+        log(error.message);
     }
 }
 
