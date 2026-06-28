@@ -108,12 +108,12 @@ async function stopRecording() {
             );
 
             const audioBlob =
-                new Blob(
-                    audioChunks,
-                    {
-                        type: "audio/webm"
-                    }
-                );
+            new Blob(
+            audioChunks,
+            {
+            type: "audio/webm;codecs=opus"
+            }
+            );
 
             console.log(
                 "AUDIO SIZE:",
