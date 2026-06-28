@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 
 <head>
@@ -10,55 +9,100 @@
 
 <h2>IME microphone test</h2>
 
-<button onclick="wake()">
-HELLO IME
+<button onclick="startRecording()">
+START RECORDING
 </button>
 
-<button onclick="sendText()">
-IME ASK JEFF TESLA NEWS
-</button>
-
-<button onclick="sleep()">
-SLEEP
+<button onclick="stopRecording()">
+STOP RECORDING
 </button>
 
 <script>
 
-function wake() {
+let mediaRecorder;
+let audioChunks = [];
 
-    if(window.opener) {
+async function startRecording() {
 
-        window.opener.postMessage(
-        {
-            type: "IME_WAKE"
-        }, "*");
+    console.log("MIC START");
 
-    }
+    const stream =
+        await navigator.mediaDevices.getUserMedia({
+            audio: true
+        });
+
+    mediaRecorder =
+        new MediaRecorder(stream);
+
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = event => {
+
+        audioChunks.push(
+            event.data
+        );
+
+    };
+
+    mediaRecorder.start();
+
+    console.log(
+        "RECORDING..."
+    );
+
 }
 
-function sendText() {
+async function stopRecording() {
 
-    if(window.opener) {
+    console.log(
+        "STOP RECORDING"
+    );
 
-        window.opener.postMessage(
-        {
-            type: "IME_TEXT",
-            text: "IME ASK JEFF TESLA NEWS"
-        }, "*");
+    mediaRecorder.stop();
 
-    }
-}
+    mediaRecorder.onstop =
+        async () => {
 
-function sleep() {
+            const audioBlob =
+                new Blob(
+                    audioChunks,
+                    {
+                        type: "audio/webm"
+                    }
+                );
 
-    if(window.opener) {
+            console.log(
+                "AUDIO SIZE:",
+                audioBlob.size
+            );
 
-        window.opener.postMessage(
-        {
-            type: "IME_SLEEP"
-        }, "*");
+            const formData =
+                new FormData();
 
-    }
+            formData.append(
+                "audio",
+                audioBlob,
+                "ime_audio.webm"
+            );
+
+            const response =
+                await fetch(
+                    "https://www.visions-real.com/_functions/v2_voice_upload",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            console.log(
+                result
+            );
+
+        };
+
 }
 
 </script>
