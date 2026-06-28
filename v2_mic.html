@@ -23,38 +23,53 @@ let audioChunks = [];
 
 async function startRecording() {
 
-    console.log("MIC START");
+    try {
 
-    const stream =
-        await navigator.mediaDevices.getUserMedia({
-            audio: true
-        });
+        console.log("MIC START");
 
-    mediaRecorder =
-        new MediaRecorder(stream);
+        const stream =
+            await navigator.mediaDevices.getUserMedia({
+                audio: true
+            });
 
-    audioChunks = [];
+        console.log(
+            "MIC PERMISSION GRANTED"
+        );
 
-    mediaRecorder.ondataavailable =
-        (event) => {
+        mediaRecorder =
+            new MediaRecorder(stream);
 
-            audioChunks.push(
-                event.data
-            );
+        console.log(
+            "MEDIA RECORDER CREATED"
+        );
 
-        };
+        audioChunks = [];
 
-    mediaRecorder.start();
+        mediaRecorder.ondataavailable =
+            event => {
+                audioChunks.push(event.data);
+            };
 
-    console.log(
-        "RECORDER:",
-        mediaRecorder
-    );
+        mediaRecorder.start();
 
-    console.log(
-        "STATE:",
-        mediaRecorder.state
-    );
+        console.log(
+            "RECORDER STATE:",
+            mediaRecorder.state
+        );
+
+        console.log(
+            "RECORDING..."
+        );
+
+    }
+    catch(error) {
+
+        console.error(
+            "MIC ERROR:",
+            error
+        );
+
+    }
 
 }
 
