@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 
 <head>
@@ -9,7 +10,8 @@
 
 <style>
 
-html,body{
+html,
+body{
 
     margin:0;
     padding:0;
@@ -18,8 +20,6 @@ html,body{
     height:100%;
 
     overflow:hidden;
-
-    background:#000;
 
     display:flex;
     justify-content:center;
@@ -49,17 +49,20 @@ html,body{
 
     border-radius:50%;
 
-    background:#7dff7d33;
+    opacity:.2;
 
     animation:
-        twinkle 4s infinite ease-in-out;
+        twinkle
+        5s
+        infinite
+        ease-in-out;
 
 }
 
 @keyframes twinkle{
 
     0%{
-        opacity:.2;
+        opacity:.15;
     }
 
     50%{
@@ -67,7 +70,7 @@ html,body{
     }
 
     100%{
-        opacity:.2;
+        opacity:.15;
     }
 
 }
@@ -76,12 +79,10 @@ html,body{
 
     position:relative;
 
-    width:180px;
-    height:180px;
+    width:220px;
+    height:220px;
 
     border-radius:50%;
-
-    border:2px solid #7dff7d;
 
     display:flex;
     justify-content:center;
@@ -89,14 +90,16 @@ html,body{
 
     cursor:pointer;
 
+    transition:
+        all
+        .4s
+        ease;
+
     animation:
-        breathe 3s infinite ease-in-out;
-
-    box-shadow:
-        0 0 20px #7dff7d55,
-        0 0 60px #7dff7d22;
-
-    z-index:100;
+        breathe
+        3s
+        infinite
+        ease-in-out;
 
 }
 
@@ -107,20 +110,12 @@ html,body{
         transform:
             scale(1);
 
-        box-shadow:
-            0 0 20px #7dff7d55,
-            0 0 60px #7dff7d22;
-
     }
 
     50%{
 
         transform:
             scale(1.06);
-
-        box-shadow:
-            0 0 40px #7dff7d88,
-            0 0 100px #7dff7d44;
 
     }
 
@@ -129,18 +124,14 @@ html,body{
         transform:
             scale(1);
 
-        box-shadow:
-            0 0 20px #7dff7d55,
-            0 0 60px #7dff7d22;
-
     }
 
 }
 
 #logo{
 
-    width:120px;
-    height:120px;
+    width:170px;
+    height:170px;
 
     border-radius:50%;
 
@@ -157,12 +148,12 @@ html,body{
 
     border-radius:50%;
 
-    background:#7dff7d;
-
-    opacity:.1;
+    opacity:.15;
 
     transition:
-        all .5s ease;
+        all
+        .6s
+        ease;
 
 }
 
@@ -170,11 +161,8 @@ html,body{
 
     opacity:1;
 
-    transform:scale(2);
-
-    box-shadow:
-        0 0 20px #7dff7d,
-        0 0 40px #7dff7d66;
+    transform:
+        scale(2);
 
 }
 
@@ -188,11 +176,9 @@ html,body{
 
     text-align:center;
 
-    color:#7dff7d;
+    font-size:20px;
 
     letter-spacing:2px;
-
-    font-size:18px;
 
 }
 
@@ -213,16 +199,19 @@ html,body{
 
 <div id="core">
 
-    <img
-        id="logo"
-        src="https://YOUR_LOGO.png"
-    >
+```
+<img
+    id="logo"
+>
+```
 
 </div>
 
 <div id="status">
 
-    Touch to awaken IME
+```
+Touch to awaken companion
+```
 
 </div>
 
@@ -233,15 +222,65 @@ const params =
         window.location.search
     );
 
+const backgroundColor =
+    params.get(
+        "bg"
+    ) || "#000000";
+
+const dotsColor =
+    params.get(
+        "dots"
+    ) || "#7dff7d";
+
+const brandingLogo =
+    params.get(
+        "logo"
+    );
+
+const companionName =
+    params.get(
+        "name"
+    ) || "IME";
+
 const returnUrl =
     params.get(
         "returnUrl"
     );
 
-const status =
-    document.getElementById(
-        "status"
-    );
+document.body.style.background =
+    backgroundColor;
+
+document.getElementById(
+    "status"
+).style.color =
+    dotsColor;
+
+document.getElementById(
+    "logo"
+).src =
+    brandingLogo;
+
+document.querySelectorAll(
+    ".node"
+).forEach(node=>{
+
+    node.style.background =
+        dotsColor;
+
+});
+
+document.getElementById(
+    "core"
+).style.border =
+    "2px solid " + dotsColor;
+
+document.getElementById(
+    "core"
+).style.boxShadow =
+
+    "0 0 30px " +
+    dotsColor +
+    "55";
 
 for(let i=0;i<120;i++){
 
@@ -259,21 +298,22 @@ for(let i=0;i<120;i++){
     star.style.top =
         Math.random()*100+"%";
 
+    star.style.background =
+        dotsColor;
+
     star.style.animationDelay =
         Math.random()*5+"s";
 
-    document
-        .getElementById(
-            "background"
-        )
-        .appendChild(
-            star
-        );
+    document.getElementById(
+        "background"
+    )
+    .appendChild(
+        star
+    );
 
 }
 
-document
-.getElementById(
+document.getElementById(
     "core"
 )
 .addEventListener(
@@ -284,8 +324,11 @@ document
 
         try{
 
-            status.innerHTML =
-                "Requesting microphone access...";
+            document.getElementById(
+                "status"
+            ).innerHTML =
+
+                "Requesting microphone access";
 
             await navigator
                 .mediaDevices
@@ -317,31 +360,31 @@ document
 
             await activate(
                 "n5",
-                "Companion online"
+                companionName +
+                " online"
             );
 
             await activate(
                 "n6",
-                "IME awakened"
+                "Returning to companion"
             );
 
             await sleep(
                 1500
             );
 
-            if(returnUrl){
-
-                window.location.href =
-                    decodeURIComponent(
-                        returnUrl
-                    );
-
-            }
+            window.location.href =
+                decodeURIComponent(
+                    returnUrl
+                );
 
         }
         catch(error){
 
-            status.innerHTML =
+            document.getElementById(
+                "status"
+            ).innerHTML =
+
                 "Microphone permission denied";
 
             console.log(
@@ -359,20 +402,20 @@ async function activate(
     text
 ){
 
-    document
-        .getElementById(
-            id
-        )
-        .classList
-        .add(
-            "active"
-        );
+    document.getElementById(
+        id
+    )
+    .classList.add(
+        "active"
+    );
 
-    status.innerHTML =
+    document.getElementById(
+        "status"
+    ).innerHTML =
         text;
 
     await sleep(
-        600
+        700
     );
 
 }
