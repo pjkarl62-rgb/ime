@@ -33,54 +33,11 @@ body{
     overflow:hidden;
 }
 
-/* ====================================== */
-/* STAR FIELD                             */
-/* ====================================== */
-
 .star{
     position:absolute;
     border-radius:50%;
-    opacity:.2;
-
-    animation:
-        starPulse 2.5s infinite ease-in-out,
-        starMove 8s infinite ease-in-out;
+    pointer-events:none;
 }
-
-@keyframes starPulse{
-    0%{
-        opacity:.15;
-        transform:scale(.7);
-    }
-
-    50%{
-        opacity:1;
-        transform:scale(1.8);
-    }
-
-    100%{
-        opacity:.15;
-        transform:scale(.7);
-    }
-}
-
-@keyframes starMove{
-    0%{
-        transform:translate(0px,0px);
-    }
-
-    50%{
-        transform:translate(8px,-8px);
-    }
-
-    100%{
-        transform:translate(0px,0px);
-    }
-}
-
-/* ====================================== */
-/* LOGO                                   */
-/* ====================================== */
 
 #logoContainer{
 
@@ -160,10 +117,6 @@ body{
 
 }
 
-/* ====================================== */
-/* CONNECTION MODULES                     */
-/* ====================================== */
-
 .connectionModule{
 
     position:absolute;
@@ -189,10 +142,6 @@ body{
     transform:scale(1.8);
 
 }
-
-/* ====================================== */
-/* INFO                                   */
-/* ====================================== */
 
 #info{
 
@@ -297,112 +246,231 @@ document.getElementById(
 ).style.color =
     dots;
 
-/* ====================================== */
-/* STAR FIELD                             */
-/* ====================================== */
+/* SWARM */
 
 const mobile =
     window.innerWidth < 768;
 
-const starCount =
+const swarm = [];
+
+const cols =
     mobile
-        ? 24
+        ? 36
         : 60;
 
-const radius =
+const rows =
     mobile
-        ? 18
-        : 28;
+        ? 60
+        : 36;
+
+const spacingX =
+    window.innerWidth
+    /
+    cols;
+
+const spacingY =
+    window.innerHeight
+    /
+    rows;
 
 for(
-    let i=0;
-    i<starCount;
-    i++
+    let y=0;
+    y<rows;
+    y++
 ){
 
-    const star =
-        document.createElement(
-            "div"
+    for(
+        let x=0;
+        x<cols;
+        x++
+    ){
+
+        const dot =
+            document.createElement(
+                "div"
+            );
+
+        dot.className =
+            "star";
+
+        const size =
+            mobile
+                ? 5
+                : 8;
+
+        const px =
+            x
+            *
+            spacingX;
+
+        const py =
+            y
+            *
+            spacingY;
+
+        dot.style.left =
+            px + "px";
+
+        dot.style.top =
+            py + "px";
+
+        dot.style.width =
+            size + "px";
+
+        dot.style.height =
+            size + "px";
+
+        dot.style.background =
+            dots;
+
+        dot.style.boxShadow =
+            `0 0 6px ${dots},0 0 12px ${dots}`;
+
+        dot.style.opacity =
+            "0.02";
+
+        container.appendChild(
+            dot
         );
 
-    star.className =
-        "star";
+        swarm.push({
 
-    const angle =
-        Math.random()
-        *
-        Math.PI
-        *
-        2;
+            element:dot,
 
-    const distance =
-        Math.sqrt(
-            Math.random()
+            x:px,
+            y:py
+
+        });
+
+    }
+
+}
+
+function animateSwarm(){
+
+    const t =
+        performance.now()
+        /
+        1000;
+
+    const lightX =
+
+        window.innerWidth
+        /
+        2
+
+        +
+
+        Math.cos(
+            t * 0.8
+        )
+
+        *
+        window.innerWidth
+        *
+        0.35;
+
+    const lightY =
+
+        window.innerHeight
+        /
+        2
+
+        +
+
+        Math.sin(
+            t * 0.6
+        )
+
+        *
+        window.innerHeight
+        *
+        0.35;
+
+    const lightRadius =
+
+        Math.max(
+            window.innerWidth,
+            window.innerHeight
         )
         *
-        radius;
+        0.30;
 
-    const x =
-        50
-        +
-        Math.cos(angle)
-        *
-        distance;
+    swarm.forEach(
 
-    const y =
-        42
-        +
-        Math.sin(angle)
-        *
-        distance;
+        p=>{
 
-    const size =
-        mobile
-            ? 2 + Math.random()*2
-            : 3 + Math.random()*4;
+            const dx =
+                p.x
+                -
+                lightX;
 
-    star.style.left =
-        x + "%";
+            const dy =
+                p.y
+                -
+                lightY;
 
-    star.style.top =
-        y + "%";
+            const distance =
+                Math.sqrt(
+                    dx*dx
+                    +
+                    dy*dy
+                );
 
-    star.style.width =
-        size + "px";
+            let alpha =
+                1
+                -
+                (
+                    distance
+                    /
+                    lightRadius
+                );
 
-    star.style.height =
-        size + "px";
+            alpha =
+                Math.max(
+                    0,
+                    alpha
+                );
 
-    star.style.background =
-        dots;
+            alpha =
+                alpha
+                *
+                alpha;
 
-    star.style.animationDelay =
-        Math.random()
-        *
-        4
-        +
-        "s";
+            alpha =
+                alpha
+                *
+                0.95
+                +
+                0.03;
 
-    container.appendChild(
-        star
+            p.element.style.opacity =
+                alpha;
+
+        }
+
+    );
+
+    requestAnimationFrame(
+        animateSwarm
     );
 
 }
 
-/* ====================================== */
-/* CONNECTION MODULES                     */
-/* ====================================== */
+animateSwarm();
+
+/* CONNECTION MODULES */
 
 const modules = [];
 
 const positions = [
 
-    {x:38,y:58},
-    {x:44,y:58},
-    {x:50,y:58},
-    {x:56,y:58},
-    {x:62,y:58},
-    {x:68,y:58}
+    {x:35,y:58},
+    {x:41,y:58},
+    {x:47,y:58},
+    {x:53,y:58},
+    {x:59,y:58},
+    {x:65,y:58}
 
 ];
 
