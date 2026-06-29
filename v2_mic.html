@@ -5,64 +5,86 @@
 
 <meta charset="UTF-8">
 <meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+      content="width=device-width,initial-scale=1.0">
 
 <title>IME Wakeup</title>
 
 <style>
 
 html,body{
+
     margin:0;
     padding:0;
+
     width:100%;
     height:100%;
+
     overflow:hidden;
+
+    background:#000;
+
     font-family:Arial,sans-serif;
+
 }
 
 body{
+
     display:flex;
     justify-content:center;
     align-items:center;
-    background:#000;
+
 }
 
 #container{
+
     position:relative;
+
     width:100%;
     height:100%;
+
     overflow:hidden;
+
 }
 
-/* ----------------------------------- */
-/* STAR FIELD                          */
-/* ----------------------------------- */
+/* ===================================== */
+/* STAR FIELD                            */
+/* ===================================== */
 
 .star{
+
     position:absolute;
+
     border-radius:50%;
+
     opacity:.2;
 
     animation:
-        starPulse 2.4s infinite ease-in-out,
+        starPulse 2.5s infinite ease-in-out,
         starMove 8s infinite ease-in-out;
+
 }
 
 @keyframes starPulse{
 
     0%{
+
         opacity:.15;
         transform:scale(.7);
+
     }
 
     50%{
+
         opacity:1;
-        transform:scale(1.7);
+        transform:scale(1.8);
+
     }
 
     100%{
+
         opacity:.15;
         transform:scale(.7);
+
     }
 
 }
@@ -70,24 +92,33 @@ body{
 @keyframes starMove{
 
     0%{
-        transform:translate(0px,0px);
+
+        transform:
+            translate(0px,0px);
+
     }
 
     50%{
-        transform:translate(8px,-8px);
+
+        transform:
+            translate(8px,-8px);
+
     }
 
     100%{
-        transform:translate(0px,0px);
+
+        transform:
+            translate(0px,0px);
+
     }
 
 }
 
-/* ----------------------------------- */
-/* CONNECTION MODULES                  */
-/* ----------------------------------- */
+/* ===================================== */
+/* CONNECTION MODULES                    */
+/* ===================================== */
 
-.connection{
+.connectionModule{
 
     position:absolute;
 
@@ -96,24 +127,26 @@ body{
 
     border-radius:50%;
 
-    opacity:.15;
+    opacity:.2;
+
+    transform:scale(.7);
 
     transition:
-        all .6s ease;
+        all .8s ease;
 
 }
 
-.connection.active{
+.connectionModule.active{
 
     opacity:1;
 
-    transform:scale(1.6);
+    transform:scale(1.8);
 
 }
 
-/* ----------------------------------- */
-/* LOGO                                */
-/* ----------------------------------- */
+/* ===================================== */
+/* LOGO                                  */
+/* ===================================== */
 
 #logoContainer{
 
@@ -122,8 +155,8 @@ body{
     left:50%;
     top:44%;
 
-    width:320px;
-    height:320px;
+    width:440px;
+    height:440px;
 
     transform:
         translate(-50%,-50%);
@@ -144,35 +177,45 @@ body{
 @keyframes breathe{
 
     0%{
+
         transform:
             translate(-50%,-50%)
             scale(1);
+
     }
 
     50%{
+
         transform:
             translate(-50%,-50%)
             scale(1.05);
+
     }
 
     100%{
+
         transform:
             translate(-50%,-50%)
             scale(1);
+
     }
 
 }
 
 #logo{
+
     width:100%;
     height:100%;
-    border-radius:50%;
+
     object-fit:cover;
+
+    border-radius:50%;
+
 }
 
-/* ----------------------------------- */
-/* TEXT                                */
-/* ----------------------------------- */
+/* ===================================== */
+/* TEXT                                  */
+/* ===================================== */
 
 #info{
 
@@ -181,14 +224,14 @@ body{
     left:50%;
     bottom:10%;
 
-    width:88%;
+    width:90%;
 
     transform:
         translateX(-50%);
 
-    color:white;
-
     text-align:center;
+
+    color:white;
 
     font-size:34px;
 
@@ -198,20 +241,29 @@ body{
 
 }
 
-/* ----------------------------------- */
-/* MOBILE                              */
-/* ----------------------------------- */
+/* ===================================== */
+/* MOBILE                                */
+/* ===================================== */
 
 @media(max-width:768px){
 
     #logoContainer{
-        width:250px;
-        height:250px;
+
+        width:320px;
+        height:320px;
+
+        top:42%;
+
     }
 
     #info{
+
         font-size:24px;
-        width:90%;
+
+        width:88%;
+
+        bottom:12%;
+
     }
 
 }
@@ -225,11 +277,15 @@ body{
 <div id="container">
 
     <div id="logoContainer">
+
         <img id="logo">
+
     </div>
 
     <div id="info">
+
         Tap IME to wake your companion
+
     </div>
 
 </div>
@@ -254,7 +310,7 @@ const bg =
 const dots =
     params.get(
         "dots"
-    ) || "#00FFAA";
+    ) || "#369AC4";
 
 const logo =
     params.get(
@@ -265,6 +321,11 @@ const companionName =
     params.get(
         "name"
     ) || "IME";
+
+console.log(
+    "RETURN URL:",
+    returnUrl
+);
 
 document.body.style.background =
     bg;
@@ -277,25 +338,34 @@ document.getElementById(
 document.getElementById(
     "logoContainer"
 ).style.boxShadow =
-    `0 0 60px ${dots}`;
+    `0 0 80px ${dots}`;
 
-/* ---------------------------- */
-/* STAR FIELD                   */
-/* ---------------------------- */
+
+/* ===================================== */
+/* STAR FIELD                            */
+/* ===================================== */
 
 const mobile =
     window.innerWidth < 768;
 
 const starCount =
-    mobile ? 25 : 60;
+    mobile
+        ? 26
+        : 60;
 
 const radius =
-    mobile ? 24 : 33;
+    mobile
+        ? 22
+        : 34;
 
 const centerX = 50;
 const centerY = 44;
 
-for(let i=0;i<starCount;i++){
+for(
+    let i=0;
+    i<starCount;
+    i++
+){
 
     const star =
         document.createElement(
@@ -356,7 +426,7 @@ for(let i=0;i<starCount;i++){
     star.style.animationDelay =
         Math.random()
         *
-        3
+        4
         +
         "s";
 
@@ -366,76 +436,79 @@ for(let i=0;i<starCount;i++){
 
 }
 
-/* ---------------------------- */
-/* CONNECTION MODULES           */
-/* ---------------------------- */
 
-const connectionPositions = [
-
-    {x:50,y:12},
-    {x:72,y:25},
-    {x:72,y:63},
-    {x:50,y:76},
-    {x:28,y:63},
-    {x:28,y:25}
-
-];
+/* ===================================== */
+/* CONNECTION MODULES                    */
+/* ===================================== */
 
 const modules = [];
 
-connectionPositions.forEach(
+const positions = [
+
+    {x:50,y:28},
+    {x:64,y:36},
+    {x:64,y:52},
+    {x:50,y:60},
+    {x:36,y:52},
+    {x:36,y:36}
+
+];
+
+positions.forEach(
 
     p=>{
 
-        const c =
+        const m =
             document.createElement(
                 "div"
             );
 
-        c.className =
-            "connection";
+        m.className =
+            "connectionModule";
 
-        c.style.left =
+        m.style.left =
             p.x + "%";
 
-        c.style.top =
+        m.style.top =
             p.y + "%";
 
-        c.style.background =
+        m.style.background =
             dots;
 
         container.appendChild(
-            c
+            m
         );
 
         modules.push(
-            c
+            m
         );
 
     }
 
 );
 
-/* ---------------------------- */
-/* WAKEUP                       */
-/* ---------------------------- */
+
+/* ===================================== */
+/* WAKEUP                                */
+/* ===================================== */
 
 async function wakeIME(){
 
     try{
 
         await navigator
-            .mediaDevices
-            .getUserMedia({
+        .mediaDevices
+        .getUserMedia({
 
-                audio:true
+            audio:true
 
-            });
+        });
 
         document.getElementById(
             "info"
         ).innerText =
-            "Establishing IME systems...";
+
+            "Initializing IME ...";
 
         modules.forEach(
 
@@ -451,11 +524,29 @@ async function wakeIME(){
 
                     },
 
-                    index*500
+                    index
+                    *
+                    500
 
                 );
 
             }
+
+        );
+
+        setTimeout(
+
+            ()=>{
+
+                document.getElementById(
+                    "info"
+                ).innerText =
+
+                    "Connection established";
+
+            },
+
+            3200
 
         );
 
@@ -473,18 +564,13 @@ async function wakeIME(){
 
             },
 
-            3500
+            4200
 
         );
 
         setTimeout(
 
             ()=>{
-
-                console.log(
-                    "RETURN URL:",
-                    returnUrl
-                );
 
                 if(
                     returnUrl
@@ -502,7 +588,7 @@ async function wakeIME(){
 
             },
 
-            4700
+            5500
 
         );
 
@@ -516,6 +602,7 @@ async function wakeIME(){
         document.getElementById(
             "info"
         ).innerText =
+
             "Microphone access required";
 
     }
