@@ -9,8 +9,7 @@
 
 <style>
 
-html,
-body{
+html,body{
 
     margin:0;
     padding:0;
@@ -20,7 +19,7 @@ body{
 
     overflow:hidden;
 
-    background:#000000;
+    background:#000;
 
     display:flex;
     justify-content:center;
@@ -30,65 +29,118 @@ body{
 
 }
 
-#container{
+#background{
 
-    position:relative;
+    position:absolute;
 
-    width:420px;
-    height:420px;
+    width:100%;
+    height:100%;
+
+    overflow:hidden;
+
+}
+
+.star{
+
+    position:absolute;
+
+    width:4px;
+    height:4px;
+
+    border-radius:50%;
+
+    background:#7dff7d33;
+
+    animation:
+        twinkle 4s infinite ease-in-out;
+
+}
+
+@keyframes twinkle{
+
+    0%{
+        opacity:.2;
+    }
+
+    50%{
+        opacity:1;
+    }
+
+    100%{
+        opacity:.2;
+    }
 
 }
 
 #core{
 
-    position:absolute;
+    position:relative;
 
-    left:50%;
-    top:50%;
-
-    transform:
-        translate(-50%,-50%);
-
-    width:140px;
-    height:140px;
+    width:180px;
+    height:180px;
 
     border-radius:50%;
 
     border:2px solid #7dff7d;
 
-    box-shadow:
-        0 0 20px #7dff7d66,
-        0 0 50px #7dff7d22;
-
     display:flex;
     justify-content:center;
     align-items:center;
 
-    color:#7dff7d;
-
     cursor:pointer;
 
-    transition:
-        all .4s ease;
+    animation:
+        breathe 3s infinite ease-in-out;
+
+    box-shadow:
+        0 0 20px #7dff7d55,
+        0 0 60px #7dff7d22;
+
+    z-index:100;
 
 }
 
-#core:hover{
+@keyframes breathe{
 
-    transform:
-        translate(-50%,-50%)
-        scale(1.05);
+    0%{
 
-    box-shadow:
-        0 0 40px #7dff7d88,
-        0 0 80px #7dff7d33;
+        transform:
+            scale(1);
+
+        box-shadow:
+            0 0 20px #7dff7d55,
+            0 0 60px #7dff7d22;
+
+    }
+
+    50%{
+
+        transform:
+            scale(1.06);
+
+        box-shadow:
+            0 0 40px #7dff7d88,
+            0 0 100px #7dff7d44;
+
+    }
+
+    100%{
+
+        transform:
+            scale(1);
+
+        box-shadow:
+            0 0 20px #7dff7d55,
+            0 0 60px #7dff7d22;
+
+    }
 
 }
 
 #logo{
 
-    width:100px;
-    height:100px;
+    width:120px;
+    height:120px;
 
     border-radius:50%;
 
@@ -100,14 +152,14 @@ body{
 
     position:absolute;
 
-    width:18px;
-    height:18px;
+    width:16px;
+    height:16px;
 
     border-radius:50%;
 
     background:#7dff7d;
 
-    opacity:.15;
+    opacity:.1;
 
     transition:
         all .5s ease;
@@ -122,63 +174,25 @@ body{
 
     box-shadow:
         0 0 20px #7dff7d,
-        0 0 50px #7dff7d55;
+        0 0 40px #7dff7d66;
 
 }
-
-#line1{left:201px;top:20px;}
-#line2{left:340px;top:100px;}
-#line3{left:340px;top:300px;}
-#line4{left:201px;top:380px;}
-#line5{left:40px;top:300px;}
-#line6{left:40px;top:100px;}
 
 #status{
 
     position:absolute;
 
-    width:100%;
+    bottom:10%;
 
-    bottom:-70px;
+    width:100%;
 
     text-align:center;
 
     color:#7dff7d;
 
+    letter-spacing:2px;
+
     font-size:18px;
-
-    letter-spacing:3px;
-
-}
-
-@keyframes pulse{
-
-    0%{
-        transform:
-            translate(-50%,-50%)
-            scale(.98);
-    }
-
-    50%{
-        transform:
-            translate(-50%,-50%)
-            scale(1.03);
-    }
-
-    100%{
-        transform:
-            translate(-50%,-50%)
-            scale(.98);
-    }
-
-}
-
-#core{
-
-    animation:
-        pulse
-        3s
-        infinite;
 
 }
 
@@ -188,52 +202,27 @@ body{
 
 <body>
 
-<div id="container">
+<div id="background"></div>
 
-    <div
-        id="line1"
-        class="node">
-    </div>
+<div class="node" id="n1" style="top:20%;left:50%;"></div>
+<div class="node" id="n2" style="top:35%;left:75%;"></div>
+<div class="node" id="n3" style="top:65%;left:75%;"></div>
+<div class="node" id="n4" style="top:80%;left:50%;"></div>
+<div class="node" id="n5" style="top:65%;left:25%;"></div>
+<div class="node" id="n6" style="top:35%;left:25%;"></div>
 
-    <div
-        id="line2"
-        class="node">
-    </div>
+<div id="core">
 
-    <div
-        id="line3"
-        class="node">
-    </div>
+    <img
+        id="logo"
+        src="https://YOUR_LOGO.png"
+    >
 
-    <div
-        id="line4"
-        class="node">
-    </div>
+</div>
 
-    <div
-        id="line5"
-        class="node">
-    </div>
+<div id="status">
 
-    <div
-        id="line6"
-        class="node">
-    </div>
-
-    <div id="core">
-
-        <img
-            id="logo"
-            src="https://deinedomain.de/ime_logo.png"
-        >
-
-    </div>
-
-    <div id="status">
-
-        CLICK TO AWAKEN IME
-
-    </div>
+    Touch to awaken IME
 
 </div>
 
@@ -254,6 +243,35 @@ const status =
         "status"
     );
 
+for(let i=0;i<120;i++){
+
+    const star =
+        document.createElement(
+            "div"
+        );
+
+    star.className =
+        "star";
+
+    star.style.left =
+        Math.random()*100+"%";
+
+    star.style.top =
+        Math.random()*100+"%";
+
+    star.style.animationDelay =
+        Math.random()*5+"s";
+
+    document
+        .getElementById(
+            "background"
+        )
+        .appendChild(
+            star
+        );
+
+}
+
 document
 .getElementById(
     "core"
@@ -267,11 +285,9 @@ document
         try{
 
             status.innerHTML =
-                "REQUESTING MICROPHONE";
+                "Requesting microphone access...";
 
-            const stream =
-
-                await navigator
+            await navigator
                 .mediaDevices
                 .getUserMedia({
 
@@ -279,43 +295,41 @@ document
 
                 });
 
-            await activateNode(
-                "line1",
-                "MIC ONLINE"
+            await activate(
+                "n1",
+                "Microphone online"
             );
 
-            await activateNode(
-                "line2",
-                "STREAM ONLINE"
+            await activate(
+                "n2",
+                "Audio stream online"
             );
 
-            await activateNode(
-                "line3",
-                "BACKEND ONLINE"
+            await activate(
+                "n3",
+                "Backend online"
             );
 
-            await activateNode(
-                "line4",
-                "STT ONLINE"
+            await activate(
+                "n4",
+                "Speech recognition online"
             );
 
-            await activateNode(
-                "line5",
-                "VOICE ONLINE"
+            await activate(
+                "n5",
+                "Companion online"
             );
 
-            await activateNode(
-                "line6",
-                "IME ONLINE"
+            await activate(
+                "n6",
+                "IME awakened"
             );
 
-            await delay(
+            await sleep(
                 1500
             );
 
-            if(
-                returnUrl
-            ){
+            if(returnUrl){
 
                 window.location.href =
                     decodeURIComponent(
@@ -328,7 +342,7 @@ document
         catch(error){
 
             status.innerHTML =
-                "MICROPHONE ACCESS DENIED";
+                "Microphone permission denied";
 
             console.log(
                 error
@@ -340,30 +354,30 @@ document
 
 );
 
-async function activateNode(
+async function activate(
     id,
     text
 ){
 
     document
-    .getElementById(
-        id
-    )
-    .classList
-    .add(
-        "active"
-    );
+        .getElementById(
+            id
+        )
+        .classList
+        .add(
+            "active"
+        );
 
     status.innerHTML =
         text;
 
-    await delay(
-        500
+    await sleep(
+        600
     );
 
 }
 
-function delay(ms){
+function sleep(ms){
 
     return new Promise(
 
