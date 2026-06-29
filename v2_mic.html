@@ -1,12 +1,16 @@
+<!DOCTYPE html>
 <html>
 
 <head>
 
 <meta charset="UTF-8">
 
+<title>IME Awakening</title>
+
 <style>
 
-html,body{
+html,
+body{
 
     margin:0;
     padding:0;
@@ -22,46 +26,20 @@ html,body{
     justify-content:center;
     align-items:center;
 
+    font-family:Arial,sans-serif;
+
 }
 
-#core{
+#container{
 
     position:relative;
 
-    width:260px;
-    height:260px;
+    width:420px;
+    height:420px;
 
 }
 
-.node{
-
-    position:absolute;
-
-    width:20px;
-    height:20px;
-
-    border-radius:50%;
-
-    background:#7dff7d;
-
-    opacity:.15;
-
-    transition:all .5s ease;
-
-}
-
-.node.active{
-
-    opacity:1;
-
-    transform:scale(1.8);
-
-    box-shadow:
-        0 0 20px #7dff7d;
-
-}
-
-#center{
+#core{
 
     position:absolute;
 
@@ -71,12 +49,16 @@ html,body{
     transform:
         translate(-50%,-50%);
 
-    width:100px;
-    height:100px;
+    width:140px;
+    height:140px;
 
     border-radius:50%;
 
     border:2px solid #7dff7d;
+
+    box-shadow:
+        0 0 20px #7dff7d66,
+        0 0 50px #7dff7d22;
 
     display:flex;
     justify-content:center;
@@ -84,7 +66,119 @@ html,body{
 
     color:#7dff7d;
 
-    font-family:Arial;
+    cursor:pointer;
+
+    transition:
+        all .4s ease;
+
+}
+
+#core:hover{
+
+    transform:
+        translate(-50%,-50%)
+        scale(1.05);
+
+    box-shadow:
+        0 0 40px #7dff7d88,
+        0 0 80px #7dff7d33;
+
+}
+
+#logo{
+
+    width:100px;
+    height:100px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+}
+
+.node{
+
+    position:absolute;
+
+    width:18px;
+    height:18px;
+
+    border-radius:50%;
+
+    background:#7dff7d;
+
+    opacity:.15;
+
+    transition:
+        all .5s ease;
+
+}
+
+.active{
+
+    opacity:1;
+
+    transform:scale(2);
+
+    box-shadow:
+        0 0 20px #7dff7d,
+        0 0 50px #7dff7d55;
+
+}
+
+#line1{left:201px;top:20px;}
+#line2{left:340px;top:100px;}
+#line3{left:340px;top:300px;}
+#line4{left:201px;top:380px;}
+#line5{left:40px;top:300px;}
+#line6{left:40px;top:100px;}
+
+#status{
+
+    position:absolute;
+
+    width:100%;
+
+    bottom:-70px;
+
+    text-align:center;
+
+    color:#7dff7d;
+
+    font-size:18px;
+
+    letter-spacing:3px;
+
+}
+
+@keyframes pulse{
+
+    0%{
+        transform:
+            translate(-50%,-50%)
+            scale(.98);
+    }
+
+    50%{
+        transform:
+            translate(-50%,-50%)
+            scale(1.03);
+    }
+
+    100%{
+        transform:
+            translate(-50%,-50%)
+            scale(.98);
+    }
+
+}
+
+#core{
+
+    animation:
+        pulse
+        3s
+        infinite;
 
 }
 
@@ -94,18 +188,52 @@ html,body{
 
 <body>
 
-<div id="core">
+<div id="container">
 
-    <div id="center">
-        IME
+    <div
+        id="line1"
+        class="node">
     </div>
 
-    <div class="node" id="node1" style="left:120px;top:0px;"></div>
-    <div class="node" id="node2" style="left:220px;top:60px;"></div>
-    <div class="node" id="node3" style="left:220px;top:180px;"></div>
-    <div class="node" id="node4" style="left:120px;top:240px;"></div>
-    <div class="node" id="node5" style="left:0px;top:180px;"></div>
-    <div class="node" id="node6" style="left:0px;top:60px;"></div>
+    <div
+        id="line2"
+        class="node">
+    </div>
+
+    <div
+        id="line3"
+        class="node">
+    </div>
+
+    <div
+        id="line4"
+        class="node">
+    </div>
+
+    <div
+        id="line5"
+        class="node">
+    </div>
+
+    <div
+        id="line6"
+        class="node">
+    </div>
+
+    <div id="core">
+
+        <img
+            id="logo"
+            src="https://deinedomain.de/ime_logo.png"
+        >
+
+    </div>
+
+    <div id="status">
+
+        CLICK TO AWAKEN IME
+
+    </div>
 
 </div>
 
@@ -121,85 +249,117 @@ const returnUrl =
         "returnUrl"
     );
 
-async function startIME(){
+const status =
+    document.getElementById(
+        "status"
+    );
 
-    try{
+document
+.getElementById(
+    "core"
+)
+.addEventListener(
 
-        const stream =
-            await navigator
-            .mediaDevices
-            .getUserMedia({
+    "click",
 
-                audio:true
+    async ()=>{
 
-            });
+        try{
 
-        activateNode(
-            "node1"
-        );
+            status.innerHTML =
+                "REQUESTING MICROPHONE";
 
-        await delay(500);
+            const stream =
 
-        activateNode(
-            "node2"
-        );
+                await navigator
+                .mediaDevices
+                .getUserMedia({
 
-        await delay(500);
+                    audio:true
 
-        activateNode(
-            "node3"
-        );
+                });
 
-        await delay(500);
+            await activateNode(
+                "line1",
+                "MIC ONLINE"
+            );
 
-        activateNode(
-            "node4"
-        );
+            await activateNode(
+                "line2",
+                "STREAM ONLINE"
+            );
 
-        await delay(500);
+            await activateNode(
+                "line3",
+                "BACKEND ONLINE"
+            );
 
-        activateNode(
-            "node5"
-        );
+            await activateNode(
+                "line4",
+                "STT ONLINE"
+            );
 
-        await delay(500);
+            await activateNode(
+                "line5",
+                "VOICE ONLINE"
+            );
 
-        activateNode(
-            "node6"
-        );
+            await activateNode(
+                "line6",
+                "IME ONLINE"
+            );
 
-        await delay(1500);
+            await delay(
+                1500
+            );
 
-        if(
-            returnUrl
-        ){
+            if(
+                returnUrl
+            ){
 
-            window.location.href =
-                decodeURIComponent(
-                    returnUrl
-                );
+                window.location.href =
+                    decodeURIComponent(
+                        returnUrl
+                    );
+
+            }
+
+        }
+        catch(error){
+
+            status.innerHTML =
+                "MICROPHONE ACCESS DENIED";
+
+            console.log(
+                error
+            );
 
         }
 
     }
-    catch(error){
 
-        console.log(
-            error
-        );
+);
 
-    }
-
-}
-
-function activateNode(id){
+async function activateNode(
+    id,
+    text
+){
 
     document
-        .getElementById(id)
-        .classList
-        .add(
-            "active"
-        );
+    .getElementById(
+        id
+    )
+    .classList
+    .add(
+        "active"
+    );
+
+    status.innerHTML =
+        text;
+
+    await delay(
+        500
+    );
 
 }
 
@@ -216,8 +376,6 @@ function delay(ms){
     );
 
 }
-
-startIME();
 
 </script>
 
