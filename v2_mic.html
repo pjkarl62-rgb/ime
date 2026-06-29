@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>IME Wakeup</title>
 
@@ -21,10 +19,11 @@ html,body{
 }
 
 body{
-    background:#000000;
     display:flex;
     justify-content:center;
     align-items:center;
+    background:#000;
+    overflow:hidden;
 }
 
 #container{
@@ -34,6 +33,10 @@ body{
     overflow:hidden;
 }
 
+/* ---------------------------------- */
+/* CONNECTION NODES                   */
+/* ---------------------------------- */
+
 .connectionNode{
 
     position:absolute;
@@ -42,7 +45,8 @@ body{
 
     opacity:0;
 
-    transform:scale(.4);
+    transform:
+        scale(.4);
 
     transition:
         opacity .8s ease,
@@ -54,22 +58,27 @@ body{
 
     opacity:1;
 
-    transform:scale(1);
+    transform:
+        scale(1);
 
 }
+
+/* ---------------------------------- */
+/* LOGO                               */
+/* ---------------------------------- */
 
 #logoContainer{
 
     position:absolute;
 
     left:50%;
-    top:45%;
+    top:42%;
+
+    width:320px;
+    height:320px;
 
     transform:
         translate(-50%,-50%);
-
-    width:240px;
-    height:240px;
 
     border-radius:50%;
 
@@ -79,33 +88,8 @@ body{
 
     cursor:pointer;
 
-    transition:
-        box-shadow .4s ease;
-
     animation:
         breathe 3s infinite ease-in-out;
-
-}
-
-@keyframes breathe{
-
-    0%{
-        transform:
-            translate(-50%,-50%)
-            scale(1);
-    }
-
-    50%{
-        transform:
-            translate(-50%,-50%)
-            scale(1.05);
-    }
-
-    100%{
-        transform:
-            translate(-50%,-50%)
-            scale(1);
-    }
 
 }
 
@@ -120,13 +104,49 @@ body{
 
 }
 
+@keyframes breathe{
+
+    0%{
+
+        transform:
+            translate(-50%,-50%)
+            scale(1);
+
+    }
+
+    50%{
+
+        transform:
+            translate(-50%,-50%)
+            scale(1.05);
+
+    }
+
+    100%{
+
+        transform:
+            translate(-50%,-50%)
+            scale(1);
+
+    }
+
+}
+
+/* ---------------------------------- */
+/* INFO TEXT                          */
+/* ---------------------------------- */
+
 #info{
 
     position:absolute;
 
-    bottom:10%;
+    left:50%;
+    bottom:11%;
 
-    width:100%;
+    width:90%;
+
+    transform:
+        translateX(-50%);
 
     text-align:center;
 
@@ -138,20 +158,33 @@ body{
 
     font-weight:300;
 
-    padding-left:30px;
-    padding-right:30px;
+    line-height:1.4;
 
 }
+
+/* ---------------------------------- */
+/* MOBILE                             */
+/* ---------------------------------- */
 
 @media(max-width:768px){
 
     #logoContainer{
-        width:180px;
-        height:180px;
+
+        width:240px;
+        height:240px;
+
+        top:40%;
+
     }
 
     #info{
+
+        width:88%;
+
         font-size:24px;
+
+        bottom:12%;
+
     }
 
 }
@@ -164,17 +197,17 @@ body{
 
 <div id="container">
 
-```
-<div id="logoContainer">
-    <img id="logo">
-</div>
+    <div id="logoContainer">
 
-<div id="info">
+        <img id="logo">
 
-    Tap IME to wake your companion
+    </div>
 
-</div>
-```
+    <div id="info">
+
+        Tap IME to wake your companion
+
+    </div>
 
 </div>
 
@@ -198,7 +231,7 @@ const bg =
 const dots =
     params.get(
         "dots"
-    ) || "#00FFAA";
+    ) || "#00ffaa";
 
 const logo =
     params.get(
@@ -209,7 +242,6 @@ const companionName =
     params.get(
         "name"
     ) || "IME";
-
 
 document.body.style.background =
     bg;
@@ -226,30 +258,33 @@ document
     "logoContainer"
 )
 .style.boxShadow =
+    `0 0 45px ${dots}`;
 
-    `0 0 40px ${dots}`;
+/* ---------------------------------- */
+/* CREATE CONNECTION NODES            */
+/* ---------------------------------- */
 
 function createConnections(){
 
-    const isMobile =
+    const mobile =
         window.innerWidth < 768;
 
     const count =
-        isMobile
-            ? 18
-            : 35;
+        mobile ? 18 : 35;
 
     const radius =
-        isMobile
-            ? 22
-            : 30;
+        mobile ? 24 : 32;
 
     const centerX = 50;
-    const centerY = 45;
+    const centerY = 42;
 
     const nodes = [];
 
-    for(let i=0;i<count;i++){
+    for(
+        let i=0;
+        i<count;
+        i++
+    ){
 
         const node =
             document.createElement(
@@ -288,17 +323,9 @@ function createConnections(){
             distance;
 
         const size =
-            isMobile
-                ? (
-                    2
-                    +
-                    Math.random()*3
-                )
-                : (
-                    3
-                    +
-                    Math.random()*5
-                );
+            mobile
+                ? 3 + Math.random()*3
+                : 4 + Math.random()*5;
 
         node.style.left =
             x + "%";
@@ -336,17 +363,21 @@ function createConnections(){
 const nodes =
     createConnections();
 
+/* ---------------------------------- */
+/* WAKEUP                             */
+/* ---------------------------------- */
+
 async function wakeIME(){
 
     try{
 
         await navigator
-            .mediaDevices
-            .getUserMedia({
+        .mediaDevices
+        .getUserMedia({
 
-                audio:true
+            audio:true
 
-            });
+        });
 
         document
         .getElementById(
@@ -361,11 +392,9 @@ async function wakeIME(){
             "...";
 
         for(
-
             let i=0;
             i<nodes.length;
             i++
-
         ){
 
             setTimeout(
@@ -380,7 +409,7 @@ async function wakeIME(){
 
                 },
 
-                i*60
+                i*70
 
             );
 
@@ -402,7 +431,7 @@ async function wakeIME(){
 
             },
 
-            2500
+            2200
 
         );
 
@@ -410,23 +439,14 @@ async function wakeIME(){
 
             ()=>{
 
-                if(
+                window.location.href =
                     returnUrl
-                ){
-
-                    window.location.href =
-
-                        returnUrl
-
-                        +
-
-                        "?ime=active";
-
-                }
+                    +
+                    "?ime=active";
 
             },
 
-            4200
+            3800
 
         );
 
