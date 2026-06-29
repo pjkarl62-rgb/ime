@@ -33,7 +33,7 @@ body{
     overflow:hidden;
 }
 
-.star{
+.swarmDot{
     position:absolute;
     border-radius:50%;
     pointer-events:none;
@@ -246,44 +246,30 @@ document.getElementById(
 ).style.color =
     dots;
 
-/* SWARM */
+/* ====================================== */
+/* SWARM                                 */
+/* ====================================== */
+
+const swarm=[];
 
 const mobile =
     window.innerWidth < 768;
 
-const swarm = [];
-
 const cols =
-    mobile
-        ? 36
-        : 60;
+    mobile ? 36 : 60;
 
 const rows =
-    mobile
-        ? 60
-        : 36;
+    mobile ? 60 : 36;
 
 const spacingX =
-    window.innerWidth
-    /
-    cols;
+    window.innerWidth / cols;
 
 const spacingY =
-    window.innerHeight
-    /
-    rows;
+    window.innerHeight / rows;
 
-for(
-    let y=0;
-    y<rows;
-    y++
-){
+for(let y=0;y<rows;y++){
 
-    for(
-        let x=0;
-        x<cols;
-        x++
-    ){
+    for(let x=0;x<cols;x++){
 
         const dot =
             document.createElement(
@@ -291,22 +277,16 @@ for(
             );
 
         dot.className =
-            "star";
+            "swarmDot";
 
         const size =
-            mobile
-                ? 5
-                : 8;
+            mobile ? 5 : 8;
 
         const px =
-            x
-            *
-            spacingX;
+            x * spacingX;
 
         const py =
-            y
-            *
-            spacingY;
+            y * spacingY;
 
         dot.style.left =
             px + "px";
@@ -324,7 +304,8 @@ for(
             dots;
 
         dot.style.boxShadow =
-            `0 0 6px ${dots},0 0 12px ${dots}`;
+            `0 0 6px ${dots},
+             0 0 12px ${dots}`;
 
         dot.style.opacity =
             "0.02";
@@ -349,15 +330,11 @@ for(
 function animateSwarm(){
 
     const t =
-        performance.now()
-        /
-        1000;
+        performance.now()/1000;
 
     const lightX =
 
-        window.innerWidth
-        /
-        2
+        window.innerWidth/2
 
         +
 
@@ -366,15 +343,14 @@ function animateSwarm(){
         )
 
         *
+
         window.innerWidth
         *
         0.35;
 
     const lightY =
 
-        window.innerHeight
-        /
-        2
+        window.innerHeight/2
 
         +
 
@@ -383,6 +359,7 @@ function animateSwarm(){
         )
 
         *
+
         window.innerHeight
         *
         0.35;
@@ -401,14 +378,10 @@ function animateSwarm(){
         p=>{
 
             const dx =
-                p.x
-                -
-                lightX;
+                p.x-lightX;
 
             const dy =
-                p.y
-                -
-                lightY;
+                p.y-lightY;
 
             const distance =
                 Math.sqrt(
@@ -418,12 +391,17 @@ function animateSwarm(){
                 );
 
             let alpha =
+
                 1
+
                 -
+
                 (
+
                     distance
                     /
                     lightRadius
+
                 );
 
             alpha =
@@ -459,18 +437,20 @@ function animateSwarm(){
 
 animateSwarm();
 
-/* CONNECTION MODULES */
+/* ====================================== */
+/* CONNECTION MODULES                     */
+/* ====================================== */
 
 const modules = [];
 
 const positions = [
 
-    {x:35,y:58},
-    {x:41,y:58},
-    {x:47,y:58},
-    {x:53,y:58},
-    {x:59,y:58},
-    {x:65,y:58}
+    {x:37.5,y:58},
+    {x:42.5,y:58},
+    {x:47.5,y:58},
+    {x:52.5,y:58},
+    {x:57.5,y:58},
+    {x:62.5,y:58}
 
 ];
 
