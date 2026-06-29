@@ -1,86 +1,97 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="en">
 <head>
 
 <meta charset="UTF-8">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+/>
 
-<title>IME Awakening</title>
+<title>IME Microphone</title>
 
 <style>
 
-html,
-body{
-
+html,body{
     margin:0;
     padding:0;
-
     width:100%;
     height:100%;
-
     overflow:hidden;
+    font-family:Arial,sans-serif;
+}
 
+body{
     display:flex;
     justify-content:center;
     align-items:center;
-
-    font-family:Arial,sans-serif;
-
+    background:#000000;
+    color:white;
 }
 
-#background{
-
-    position:absolute;
-
+#container{
+    position:relative;
     width:100%;
     height:100%;
-
     overflow:hidden;
-
 }
 
 .star{
-
     position:absolute;
-
-    width:4px;
-    height:4px;
-
     border-radius:50%;
-
-    opacity:.2;
+    opacity:.35;
 
     animation:
-        twinkle
-        5s
-        infinite
-        ease-in-out;
-
+        pulse 2.5s infinite ease-in-out,
+        drift 8s infinite ease-in-out;
 }
 
-@keyframes twinkle{
-
+@keyframes pulse{
     0%{
         opacity:.15;
+        transform:scale(.7);
     }
 
     50%{
         opacity:1;
+        transform:scale(1.5);
     }
 
     100%{
         opacity:.15;
+        transform:scale(.7);
     }
-
 }
 
-#core{
+@keyframes drift{
+    0%{
+        transform:
+            translate(0px,0px);
+    }
 
-    position:relative;
+    50%{
+        transform:
+            translate(12px,-10px);
+    }
 
-    width:220px;
-    height:220px;
+    100%{
+        transform:
+            translate(0px,0px);
+    }
+}
+
+#logoContainer{
+
+    position:absolute;
+
+    left:50%;
+    top:45%;
+
+    transform:
+        translate(-50%,-50%);
+
+    width:240px;
+    height:240px;
 
     border-radius:50%;
 
@@ -88,50 +99,38 @@ body{
     justify-content:center;
     align-items:center;
 
-    cursor:pointer;
-
-    transition:
-        all
-        .4s
-        ease;
+    backdrop-filter:blur(12px);
 
     animation:
-        breathe
-        3s
-        infinite
-        ease-in-out;
-
+        breathe 3s infinite ease-in-out;
 }
 
 @keyframes breathe{
 
     0%{
-
         transform:
+            translate(-50%,-50%)
             scale(1);
-
     }
 
     50%{
-
         transform:
-            scale(1.06);
-
+            translate(-50%,-50%)
+            scale(1.04);
     }
 
     100%{
-
         transform:
+            translate(-50%,-50%)
             scale(1);
-
     }
 
 }
 
 #logo{
 
-    width:170px;
-    height:170px;
+    width:100%;
+    height:100%;
 
     border-radius:50%;
 
@@ -139,79 +138,72 @@ body{
 
 }
 
-.node{
+#activateButton{
 
     position:absolute;
 
-    width:16px;
-    height:16px;
-
-    border-radius:50%;
-
-    opacity:.15;
-
-    transition:
-        all
-        .6s
-        ease;
-
-}
-
-.active{
-
-    opacity:1;
+    left:50%;
+    top:72%;
 
     transform:
-        scale(2);
+        translateX(-50%);
+
+    padding:
+
+        16px
+        36px;
+
+    border:none;
+    border-radius:40px;
+
+    font-size:18px;
+
+    cursor:pointer;
+
+    transition:
+        all .3s ease;
 
 }
 
-#status{
+#activateButton:hover{
+    transform:
+        translateX(-50%)
+        scale(1.05);
+}
+
+#info{
 
     position:absolute;
-
-    bottom:10%;
 
     width:100%;
 
     text-align:center;
 
-    font-size:20px;
+    top:62%;
 
-    letter-spacing:2px;
+    font-size:18px;
 
+    opacity:.8;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<div id="background"></div>
+<div id="container">
 
-<div class="node" id="n1" style="top:20%;left:50%;"></div>
-<div class="node" id="n2" style="top:35%;left:75%;"></div>
-<div class="node" id="n3" style="top:65%;left:75%;"></div>
-<div class="node" id="n4" style="top:80%;left:50%;"></div>
-<div class="node" id="n5" style="top:65%;left:25%;"></div>
-<div class="node" id="n6" style="top:35%;left:25%;"></div>
+    <div id="logoContainer">
+        <img id="logo">
+    </div>
 
-<div id="core">
+    <div id="info">
+        Activate microphone to wake up IME
+    </div>
 
-```
-<img
-    id="logo"
->
-```
-
-</div>
-
-<div id="status">
-
-```
-Touch to awaken companion
-```
+    <button id="activateButton">
+        Activate IME
+    </button>
 
 </div>
 
@@ -222,113 +214,152 @@ const params =
         window.location.search
     );
 
-const backgroundColor =
+const returnUrl =
+    params.get(
+        "returnUrl"
+    );
+
+const bg =
     params.get(
         "bg"
     ) || "#000000";
 
-const dotsColor =
+const dots =
     params.get(
         "dots"
-    ) || "#7dff7d";
+    ) || "#00FFAA";
 
-const brandingLogo =
+const logo =
     params.get(
         "logo"
-    );
+    ) || "";
 
 const companionName =
     params.get(
         "name"
     ) || "IME";
 
-const returnUrl =
-    params.get(
-        "returnUrl"
-    );
-
 document.body.style.background =
-    backgroundColor;
-
-document.getElementById(
-    "status"
-).style.color =
-    dotsColor;
+    bg;
 
 document.getElementById(
     "logo"
 ).src =
-    brandingLogo;
-
-document.querySelectorAll(
-    ".node"
-).forEach(node=>{
-
-    node.style.background =
-        dotsColor;
-
-});
+    logo;
 
 document.getElementById(
-    "core"
-).style.border =
-    "2px solid " + dotsColor;
+    "activateButton"
+).style.background =
+    dots;
 
 document.getElementById(
-    "core"
-).style.boxShadow =
+    "activateButton"
+).style.color =
+    bg;
 
-    "0 0 30px " +
-    dotsColor +
-    "55";
+function createParticles(){
 
-for(let i=0;i<120;i++){
+    const isMobile =
+        window.innerWidth < 768;
 
-    const star =
-        document.createElement(
-            "div"
-        );
+    const particleCount =
+        isMobile ? 40 : 80;
 
-    star.className =
-        "star";
+    const radius =
+        isMobile ? 22 : 32;
 
-    star.style.left =
-        Math.random()*100+"%";
+    const size =
+        isMobile ? 3 : 5;
 
-    star.style.top =
-        Math.random()*100+"%";
+    for(
+        let i=0;
+        i<particleCount;
+        i++
+    ){
 
-    star.style.background =
-        dotsColor;
+        const star =
+            document.createElement(
+                "div"
+            );
 
-    star.style.animationDelay =
-        Math.random()*5+"s";
+        star.className =
+            "star";
 
-    document.getElementById(
-        "background"
-    )
-    .appendChild(
-        star
-    );
+        const angle =
+            Math.random()
+            *
+            Math.PI
+            *
+            2;
+
+        const distance =
+            Math.sqrt(
+                Math.random()
+            )
+            *
+            radius;
+
+        const x =
+            50
+            +
+            Math.cos(angle)
+            *
+            distance;
+
+        const y =
+            45
+            +
+            Math.sin(angle)
+            *
+            distance;
+
+        star.style.left =
+            x + "%";
+
+        star.style.top =
+            y + "%";
+
+        star.style.width =
+            size + "px";
+
+        star.style.height =
+            size + "px";
+
+        star.style.background =
+            dots;
+
+        star.style.animationDelay =
+            Math.random()
+            *
+            5
+            +
+            "s";
+
+        document
+            .getElementById(
+                "container"
+            )
+            .appendChild(
+                star
+            );
+
+    }
 
 }
 
-document.getElementById(
-    "core"
+createParticles();
+
+document
+.getElementById(
+    "activateButton"
 )
 .addEventListener(
 
     "click",
 
-    async ()=>{
+    async()=>{
 
         try{
-
-            document.getElementById(
-                "status"
-            ).innerHTML =
-
-                "Requesting microphone access";
 
             await navigator
                 .mediaDevices
@@ -338,57 +369,26 @@ document.getElementById(
 
                 });
 
-            await activate(
-                "n1",
-                "Microphone online"
-            );
+            if(
+                returnUrl
+            ){
 
-            await activate(
-                "n2",
-                "Audio stream online"
-            );
-
-            await activate(
-                "n3",
-                "Backend online"
-            );
-
-            await activate(
-                "n4",
-                "Speech recognition online"
-            );
-
-            await activate(
-                "n5",
-                companionName +
-                " online"
-            );
-
-            await activate(
-                "n6",
-                "Returning to companion"
-            );
-
-            await sleep(
-                1500
-            );
-
-            window.location.href =
-                decodeURIComponent(
+                window.location.href =
                     returnUrl
-                );
+                    +
+                    "?ime=active";
+
+            }
 
         }
         catch(error){
 
-            document.getElementById(
-                "status"
-            ).innerHTML =
-
-                "Microphone permission denied";
-
-            console.log(
+            console.error(
                 error
+            );
+
+            alert(
+                "Microphone permission required for IME."
             );
 
         }
@@ -397,45 +397,7 @@ document.getElementById(
 
 );
 
-async function activate(
-    id,
-    text
-){
-
-    document.getElementById(
-        id
-    )
-    .classList.add(
-        "active"
-    );
-
-    document.getElementById(
-        "status"
-    ).innerHTML =
-        text;
-
-    await sleep(
-        700
-    );
-
-}
-
-function sleep(ms){
-
-    return new Promise(
-
-        resolve=>
-            setTimeout(
-                resolve,
-                ms
-            )
-
-    );
-
-}
-
 </script>
 
 </body>
-
 </html>
