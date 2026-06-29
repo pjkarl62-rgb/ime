@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 <html>
+
 <head>
 <meta charset="UTF-8">
 <title>IME MIC</title>
@@ -9,63 +10,154 @@
 <body>
 
 <button onclick="startRecording()">
-START RECORDING
+HELLO IME
 </button>
 
 <button onclick="stopRecording()">
-STOP RECORDING
+GOOD NIGHT IME
 </button>
 
 <script>
 
 let mediaRecorder;
+
 let audioChunks = [];
 
-async function startRecording() {
+let audioContext;
 
-    try {
+let analyser;
 
-        console.log("MIC START");
+let dataArray;
+
+let currentMicrophoneLevel = 0;
+
+let microphoneAnimationFrame;
+
+function updateMicrophoneLevel(){
+
+    if(
+        !analyser
+    ){
+        return;
+    }
+
+    analyser.getByteTimeDomainData(
+        dataArray
+    );
+
+    let sum = 0;
+
+    for(
+        let i = 0;
+        i < dataArray.length;
+        i++
+    ){
+
+        const sample =
+            (
+                dataArray[i] -
+                128
+            ) / 128;
+
+        sum +=
+            sample *
+            sample;
+
+    }
+
+    const rms =
+        Math.sqrt(
+            sum /
+            dataArray.length
+        );
+
+    currentMicrophoneLevel =
+        rms;
+
+    console.log(
+        "MIC LEVEL:",
+        currentMicrophoneLevel
+    );
+
+    microphoneAnimationFrame =
+        requestAnimationFrame(
+            updateMicrophoneLevel
+        );
+
+}
+
+async function startRecording(){
+
+    try{
+
+        console.log(
+            "IME START"
+        );
 
         const stream =
-            await navigator.mediaDevices.getUserMedia({
-                audio: true
-            });
+            await navigator
+                .mediaDevices
+                .getUserMedia({
+                    audio: true
+                });
 
         console.log(
             "MIC PERMISSION GRANTED"
         );
 
-        mediaRecorder =
-            new MediaRecorder(stream);
+        audioContext =
+            new AudioContext();
 
-        console.log(
-            "MEDIA RECORDER CREATED"
+        const source =
+            audioContext
+                .createMediaStreamSource(
+                    stream
+                );
+
+        analyser =
+            audioContext
+                .createAnalyser();
+
+        analyser.fftSize =
+            1024;
+
+        source.connect(
+            analyser
         );
+
+        dataArray =
+            new Uint8Array(
+                analyser.frequencyBinCount
+            );
+
+        updateMicrophoneLevel();
+
+        mediaRecorder =
+            new MediaRecorder(
+                stream
+            );
 
         audioChunks = [];
 
         mediaRecorder.ondataavailable =
             event => {
-                audioChunks.push(event.data);
+
+                audioChunks.push(
+                    event.data
+                );
+
             };
 
         mediaRecorder.start();
-
-        console.log(
-            "RECORDER STATE:",
-            mediaRecorder.state
-        );
 
         console.log(
             "RECORDING..."
         );
 
     }
-    catch(error) {
+    catch(error){
 
         console.error(
-            "MIC ERROR:",
             error
         );
 
@@ -73,47 +165,29 @@ async function startRecording() {
 
 }
 
-async function stopRecording() {
-
-    console.log(
-        "STOP RECORDING"
-    );
-
-    console.log(
-        "RECORDER OBJECT:",
-        mediaRecorder
-    );
+async function stopRecording(){
 
     if(
         !mediaRecorder
-    ) {
-
-        console.log(
-            "RECORDER IS NULL"
-        );
-
+    ){
         return;
     }
-
-    console.log(
-        "STATE:",
-        mediaRecorder.state
-    );
 
     mediaRecorder.onstop =
         async () => {
 
-            console.log(
-                "RECORDER STOPPED"
+            cancelAnimationFrame(
+                microphoneAnimationFrame
             );
 
             const audioBlob =
-            new Blob(
-            audioChunks,
-            {
-            type: "audio/webm;codecs=opus"
-            }
-            );
+                new Blob(
+                    audioChunks,
+                    {
+                        type:
+                        "audio/webm;codecs=opus"
+                    }
+                );
 
             console.log(
                 "AUDIO SIZE:",
@@ -133,8 +207,8 @@ async function stopRecording() {
                 await fetch(
                     "https://www.visions-real.com/_functions/v2_voice_upload",
                     {
-                        method: "POST",
-                        body: formData
+                        method:"POST",
+                        body:formData
                     }
                 );
 
@@ -142,8 +216,27 @@ async function stopRecording() {
                 await response.json();
 
             console.log(
+                "WHISPER RESULT:",
                 result
             );
+
+            if(
+                window.parent
+            ){
+
+                window.parent.postMessage(
+                    {
+                        imeState:
+                            "thinking",
+                        transcript:
+                            result.transcript || "",
+                        audioLevel:
+                            currentMicrophoneLevel
+                    },
+                    "*"
+                );
+
+            }
 
         };
 
@@ -151,7 +244,28 @@ async function stopRecording() {
 
 }
 
+setInterval(()=>{
+
+    if(
+        window.parent
+    ){
+
+        window.parent.postMessage(
+            {
+                imeState:
+                    "listening",
+                audioLevel:
+                    currentMicrophoneLevel
+            },
+            "*"
+        );
+
+    }
+
+},50);
+
 </script>
 
 </body>
+
 </html>
