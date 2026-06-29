@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
 
 <title>IME Wakeup</title>
 
@@ -23,7 +25,6 @@ body{
     justify-content:center;
     align-items:center;
     background:#000;
-    overflow:hidden;
 }
 
 #container{
@@ -33,46 +34,93 @@ body{
     overflow:hidden;
 }
 
-/* ---------------------------------- */
-/* CONNECTION NODES                   */
-/* ---------------------------------- */
+/* ----------------------------------- */
+/* STAR FIELD                          */
+/* ----------------------------------- */
 
-.connectionNode{
+.star{
+    position:absolute;
+    border-radius:50%;
+    opacity:.2;
+
+    animation:
+        starPulse 2.4s infinite ease-in-out,
+        starMove 8s infinite ease-in-out;
+}
+
+@keyframes starPulse{
+
+    0%{
+        opacity:.15;
+        transform:scale(.7);
+    }
+
+    50%{
+        opacity:1;
+        transform:scale(1.7);
+    }
+
+    100%{
+        opacity:.15;
+        transform:scale(.7);
+    }
+
+}
+
+@keyframes starMove{
+
+    0%{
+        transform:translate(0px,0px);
+    }
+
+    50%{
+        transform:translate(8px,-8px);
+    }
+
+    100%{
+        transform:translate(0px,0px);
+    }
+
+}
+
+/* ----------------------------------- */
+/* CONNECTION MODULES                  */
+/* ----------------------------------- */
+
+.connection{
 
     position:absolute;
 
+    width:18px;
+    height:18px;
+
     border-radius:50%;
 
-    opacity:0;
-
-    transform:
-        scale(.4);
+    opacity:.15;
 
     transition:
-        opacity .8s ease,
-        transform .8s ease;
+        all .6s ease;
 
 }
 
-.connectionNode.active{
+.connection.active{
 
     opacity:1;
 
-    transform:
-        scale(1);
+    transform:scale(1.6);
 
 }
 
-/* ---------------------------------- */
-/* LOGO                               */
-/* ---------------------------------- */
+/* ----------------------------------- */
+/* LOGO                                */
+/* ----------------------------------- */
 
 #logoContainer{
 
     position:absolute;
 
     left:50%;
-    top:42%;
+    top:44%;
 
     width:320px;
     height:320px;
@@ -93,98 +141,77 @@ body{
 
 }
 
-#logo{
-
-    width:100%;
-    height:100%;
-
-    object-fit:cover;
-
-    border-radius:50%;
-
-}
-
 @keyframes breathe{
 
     0%{
-
         transform:
             translate(-50%,-50%)
             scale(1);
-
     }
 
     50%{
-
         transform:
             translate(-50%,-50%)
             scale(1.05);
-
     }
 
     100%{
-
         transform:
             translate(-50%,-50%)
             scale(1);
-
     }
 
 }
 
-/* ---------------------------------- */
-/* INFO TEXT                          */
-/* ---------------------------------- */
+#logo{
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+/* ----------------------------------- */
+/* TEXT                                */
+/* ----------------------------------- */
 
 #info{
 
     position:absolute;
 
     left:50%;
-    bottom:11%;
+    bottom:10%;
 
-    width:90%;
+    width:88%;
 
     transform:
         translateX(-50%);
 
-    text-align:center;
-
     color:white;
 
-    opacity:.85;
+    text-align:center;
 
-    font-size:32px;
-
-    font-weight:300;
+    font-size:34px;
 
     line-height:1.4;
 
+    opacity:.9;
+
 }
 
-/* ---------------------------------- */
-/* MOBILE                             */
-/* ---------------------------------- */
+/* ----------------------------------- */
+/* MOBILE                              */
+/* ----------------------------------- */
 
 @media(max-width:768px){
 
     #logoContainer{
-
-        width:240px;
-        height:240px;
-
-        top:40%;
-
+        width:250px;
+        height:250px;
     }
 
     #info{
-
-        width:88%;
-
         font-size:24px;
-
-        bottom:12%;
-
+        width:90%;
     }
 
 }
@@ -198,15 +225,11 @@ body{
 <div id="container">
 
     <div id="logoContainer">
-
         <img id="logo">
-
     </div>
 
     <div id="info">
-
         Tap IME to wake your companion
-
     </div>
 
 </div>
@@ -231,7 +254,7 @@ const bg =
 const dots =
     params.get(
         "dots"
-    ) || "#00ffaa";
+    ) || "#00FFAA";
 
 const logo =
     params.get(
@@ -246,184 +269,203 @@ const companionName =
 document.body.style.background =
     bg;
 
-document
-.getElementById(
+document.getElementById(
     "logo"
-)
-.src =
+).src =
     logo;
 
-document
-.getElementById(
+document.getElementById(
     "logoContainer"
-)
-.style.boxShadow =
-    `0 0 45px ${dots}`;
+).style.boxShadow =
+    `0 0 60px ${dots}`;
 
-/* ---------------------------------- */
-/* CREATE CONNECTION NODES            */
-/* ---------------------------------- */
+/* ---------------------------- */
+/* STAR FIELD                   */
+/* ---------------------------- */
 
-function createConnections(){
+const mobile =
+    window.innerWidth < 768;
 
-    const mobile =
-        window.innerWidth < 768;
+const starCount =
+    mobile ? 25 : 60;
 
-    const count =
-        mobile ? 18 : 35;
+const radius =
+    mobile ? 24 : 33;
 
-    const radius =
-        mobile ? 24 : 32;
+const centerX = 50;
+const centerY = 44;
 
-    const centerX = 50;
-    const centerY = 42;
+for(let i=0;i<starCount;i++){
 
-    const nodes = [];
+    const star =
+        document.createElement(
+            "div"
+        );
 
-    for(
-        let i=0;
-        i<count;
-        i++
-    ){
+    star.className =
+        "star";
 
-        const node =
+    const angle =
+        Math.random()
+        *
+        Math.PI
+        *
+        2;
+
+    const distance =
+        Math.sqrt(
+            Math.random()
+        )
+        *
+        radius;
+
+    const x =
+        centerX
+        +
+        Math.cos(angle)
+        *
+        distance;
+
+    const y =
+        centerY
+        +
+        Math.sin(angle)
+        *
+        distance;
+
+    const size =
+        mobile
+            ? 2 + Math.random()*2
+            : 3 + Math.random()*4;
+
+    star.style.left =
+        x + "%";
+
+    star.style.top =
+        y + "%";
+
+    star.style.width =
+        size + "px";
+
+    star.style.height =
+        size + "px";
+
+    star.style.background =
+        dots;
+
+    star.style.animationDelay =
+        Math.random()
+        *
+        3
+        +
+        "s";
+
+    container.appendChild(
+        star
+    );
+
+}
+
+/* ---------------------------- */
+/* CONNECTION MODULES           */
+/* ---------------------------- */
+
+const connectionPositions = [
+
+    {x:50,y:12},
+    {x:72,y:25},
+    {x:72,y:63},
+    {x:50,y:76},
+    {x:28,y:63},
+    {x:28,y:25}
+
+];
+
+const modules = [];
+
+connectionPositions.forEach(
+
+    p=>{
+
+        const c =
             document.createElement(
                 "div"
             );
 
-        node.className =
-            "connectionNode";
+        c.className =
+            "connection";
 
-        const angle =
-            Math.random()
-            *
-            Math.PI
-            *
-            2;
+        c.style.left =
+            p.x + "%";
 
-        const distance =
-            Math.sqrt(
-                Math.random()
-            )
-            *
-            radius;
+        c.style.top =
+            p.y + "%";
 
-        const x =
-            centerX
-            +
-            Math.cos(angle)
-            *
-            distance;
-
-        const y =
-            centerY
-            +
-            Math.sin(angle)
-            *
-            distance;
-
-        const size =
-            mobile
-                ? 3 + Math.random()*3
-                : 4 + Math.random()*5;
-
-        node.style.left =
-            x + "%";
-
-        node.style.top =
-            y + "%";
-
-        node.style.width =
-            size + "px";
-
-        node.style.height =
-            size + "px";
-
-        node.style.background =
+        c.style.background =
             dots;
 
-        document
-        .getElementById(
-            "container"
-        )
-        .appendChild(
-            node
+        container.appendChild(
+            c
         );
 
-        nodes.push(
-            node
+        modules.push(
+            c
         );
 
     }
 
-    return nodes;
+);
 
-}
-
-const nodes =
-    createConnections();
-
-/* ---------------------------------- */
-/* WAKEUP                             */
-/* ---------------------------------- */
+/* ---------------------------- */
+/* WAKEUP                       */
+/* ---------------------------- */
 
 async function wakeIME(){
 
     try{
 
         await navigator
-        .mediaDevices
-        .getUserMedia({
+            .mediaDevices
+            .getUserMedia({
 
-            audio:true
+                audio:true
 
-        });
+            });
 
-        document
-        .getElementById(
+        document.getElementById(
             "info"
-        )
-        .innerText =
+        ).innerText =
+            "Establishing IME systems...";
 
-            "Awakening "
-            +
-            companionName
-            +
-            "...";
+        modules.forEach(
 
-        for(
-            let i=0;
-            i<nodes.length;
-            i++
-        ){
+            (m,index)=>{
 
-            setTimeout(
+                setTimeout(
 
-                ()=>{
+                    ()=>{
 
-                    nodes[i]
-                    .classList
-                    .add(
-                        "active"
-                    );
+                        m.classList.add(
+                            "active"
+                        );
 
-                },
+                    },
 
-                i*70
+                    index*500
 
-            );
+                );
 
-        }
+            }
+
+        );
 
         setTimeout(
 
             ()=>{
 
-                document
-                .getElementById(
+                document.getElementById(
                     "info"
-                )
-                .innerText =
+                ).innerText =
 
                     companionName
                     +
@@ -431,7 +473,7 @@ async function wakeIME(){
 
             },
 
-            2200
+            3500
 
         );
 
@@ -439,38 +481,48 @@ async function wakeIME(){
 
             ()=>{
 
-                window.location.href =
+                console.log(
+                    "RETURN URL:",
                     returnUrl
-                    +
-                    "?ime=active";
+                );
+
+                if(
+                    returnUrl
+                ){
+
+                    window.location.href =
+
+                        returnUrl
+
+                        +
+
+                        "?ime=active";
+
+                }
 
             },
 
-            3800
+            4700
 
         );
 
     }
     catch(error){
 
-        console.error(
+        console.log(
             error
         );
 
-        document
-        .getElementById(
+        document.getElementById(
             "info"
-        )
-        .innerText =
-
+        ).innerText =
             "Microphone access required";
 
     }
 
 }
 
-document
-.getElementById(
+document.getElementById(
     "logoContainer"
 )
 .addEventListener(
@@ -484,4 +536,5 @@ document
 </script>
 
 </body>
+
 </html>
