@@ -621,7 +621,7 @@ async function uploadChunk(blob){
 
         //    transcript: transcript
 
-        //},"*");            
+        //},"*");
 
         console.log(
             "IME:",
@@ -799,11 +799,22 @@ async function wakeIME(){
                     returnUrl
                 ){
 
-                    window.location.href =
-                        returnUrl
-                        +
-                        "?ime=active";
+                    //window.location.href =
+                    //    returnUrl
+                    //    +
+                    //    "?ime=active";
 
+                    const wixTab =
+                        window.open(
+                            returnUrl +
+                            "?ime=active",
+                            "_blank"
+                        );
+
+                    document.getElementById(
+                        "info"
+                    ).innerText =
+                        "IME active in background";
                 }
 
             },
