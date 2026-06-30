@@ -615,6 +615,14 @@ async function uploadChunk(blob){
             result.transcript
             .trim();
 
+        window.parent.postMessage({
+
+            type: "microphoneTranscript",
+
+            transcript: transcript
+
+        },"*");            
+
         console.log(
             "IME:",
             transcript
@@ -735,7 +743,7 @@ async function wakeIME(){
         await startPermanentListening(
             stream
         );
-                
+
 
         document.getElementById(
             "info"
