@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #ffffff !important; /* Erzwingt den weißen Hintergrund */
+            background-color: #ffffff !important;
             color: #222222;
             display: flex;
             flex-direction: column;
@@ -15,6 +15,7 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            overflow: hidden;
         }
         .container {
             text-align: center;
@@ -25,8 +26,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Nach oben verschoben */
-            transform: translateY(-40px);
+            transform: translateY(-20px);
         }
         .logo-link {
             cursor: pointer;
@@ -37,13 +37,15 @@
             transform: scale(1.03);
         }
         .logo {
-            /* Um 50% vergrößert (auf 150px Breite) */
-            width: 150px;
-            height: auto;
+            /* Responsiv auf 35vh angepasst für Smartphone & Desktop */
+            height: 35vh;
+            width: auto;
+            max-width: 100%;
             margin-bottom: 25px;
             border: none;
             box-shadow: none;
             background: transparent;
+            object-fit: contain;
         }
         h2 {
             font-size: 26px;
@@ -57,34 +59,64 @@
             margin-bottom: 25px;
             color: #333333;
         }
+
+        /* Basis Button-Design ohne Rand mit sanftem Glow */
         button {
-            background-color: #ff4757;
             color: white;
             border: none;
-            padding: 16px 32px;
+            outline: none;
+            padding: 16px 36px;
             font-size: 20px;
             font-weight: bold;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: background 0.3s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: transform 0.2s, background-color 0.3s;
         }
-        button:hover {
-            background-color: #ff6b81;
+        button:active {
+            transform: scale(0.98);
         }
+
+        /* Start-Button (Grün mit sanftem Glow & Pulsieren) */
+        .btn-start {
+            background-color: #2ed573;
+            box-shadow: 0 0 15px rgba(46, 213, 115, 0.5);
+            animation: glowGreen 2s infinite;
+        }
+
+        /* Stop-Button (Rot mit sanftem Glow & Pulsieren) */
+        .btn-stop {
+            background-color: #ff4757;
+            box-shadow: 0 0 15px rgba(255, 71, 87, 0.6);
+            animation: glowRed 1.5s infinite;
+        }
+
         #status {
             margin-top: 20px;
             font-size: 18px;
             font-weight: bold;
             color: #555555;
         }
-        .pulse {
-            animation: pulse 1.5s infinite;
+
+        /* Pulsierender Glow-Effekt für die Buttons */
+        @keyframes glowGreen {
+            0% { box-shadow: 0 0 10px rgba(46, 213, 115, 0.4); transform: scale(1); }
+            50% { box-shadow: 0 0 22px rgba(46, 213, 115, 0.8); transform: scale(1.03); }
+            100% { box-shadow: 0 0 10px rgba(46, 213, 115, 0.4); transform: scale(1); }
         }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
+
+        @keyframes glowRed {
+            0% { box-shadow: 0 0 10px rgba(255, 71, 87, 0.4); transform: scale(1); }
+            50% { box-shadow: 0 0 25px rgba(255, 71, 87, 0.9); transform: scale(1.04); }
+            100% { box-shadow: 0 0 10px rgba(255, 71, 87, 0.4); transform: scale(1); }
+        }
+
+        .pulse-text {
+            animation: pulseText 1.5s infinite;
+        }
+        @keyframes pulseText {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
@@ -99,7 +131,8 @@
         <h2>IME Voice Assistant</h2>
         <p id="instruction">Click the button to start recording.</p>
 
-        <button id="recordButton" onclick="toggleRecording()">🎙️ Start Recording</button>
+        <!-- Standardmäßig grüner Start-Button ohne Rand -->
+        <button id="recordButton" class="btn-start" onclick="toggleRecording()">🎙️ Start Recording</button>
 
         <div id="status"></div>
     </div>
@@ -138,7 +171,7 @@
 
                     mediaRecorder.onstop = async () => {
                         instructionP.innerText = "Processing speech...";
-                        statusDiv.classList.add("pulse");
+                        statusDiv.classList.add("pulse-text");
 
                         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                         await sendAudioToWix(audioBlob);
@@ -147,10 +180,11 @@
                     mediaRecorder.start();
                     isRecording = true;
 
+                    // Wechsel zu Rot und Stop-Zustand
                     recordButton.innerText = "⏹️ Stop Recording";
-                    recordButton.style.backgroundColor = "#2ed573"; // Green to stop
+                    recordButton.className = "btn-stop";
                     instructionP.innerText = "🎙️ Recording in progress... Speak now!";
-                    statusDiv.classList.add("pulse");
+                    statusDiv.classList.add("pulse-text");
 
                 } catch (error) {
                     console.error("Microphone error:", error);
@@ -198,7 +232,7 @@
                 statusDiv.innerText = "Error: " + error.message;
                 recordButton.style.display = "block";
                 recordButton.innerText = "Try Again";
-                recordButton.style.backgroundColor = "#ff4757";
+                recordButton.className = "btn-start";
                 isRecording = false;
             }
         }
