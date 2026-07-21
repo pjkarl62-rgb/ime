@@ -44,9 +44,12 @@ const infoBox = document.getElementById("info");
 const actionBtn = document.getElementById("actionBtn");
 const wixFrontendUrl = "https://www.visions-real.com/pjkime";
 
-console.log("[GitHub Background] Engine gestartet.");
+// Der plattformübergreifende Kanal
+const channel = new BroadcastChannel('ime_global_voice_channel');
 
-// 1. Mikrofon freigeben und Recorder sofort vorbereiten
+console.log("[GitHub Background] Engine gestartet. Horche auf Broadcasts...");
+
+// 1. Mikrofon freigeben
 actionBtn.addEventListener("click", async () => {
     if (!mediaStream) {
         try {
@@ -54,7 +57,6 @@ actionBtn.addEventListener("click", async () => {
             mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             console.log("[GitHub Background] Mikrofon erfolgreich!");
 
-            // Sofort den MediaRecorder initialisieren, damit er einsatzbereit ist
             mediaRecorder = new MediaRecorder(mediaStream, { mimeType: "audio/webm" });
 
             mediaRecorder.ondataavailable = e => {
@@ -62,7 +64,7 @@ actionBtn.addEventListener("click", async () => {
             };
 
             mediaRecorder.onstop = async () => {
-                console.log("[GitHub Background] Recorder gestoppt. Sende an Backend...");
+                console.log("[GitHub Background] Recorder gestoppt. Sende Audio an Backend...");
                 if (audioChunks.length > 0) {
                     const blob = new Blob(audioChunks, { type: "audio/webm" });
                     await sendAudioToBackend(blob);
@@ -91,28 +93,25 @@ actionBtn.addEventListener("click", async () => {
     }
 });
 
-// 2. Permanent den localStorage überwachen (Reagiert sofort auf Wix-Befehle)
-setInterval(() => {
-    const command = localStorage.getItem("ime_command");
+// 2. Empfängt die Befehle direkt aus dem Wix-Tab über den BroadcastChannel
+channel.onmessage = (event) => {
+    const data = event.data;
+    console.log("[GitHub Background] Broadcast empfangen:", data);
 
-    if (command === "START_RECORDING" && mediaRecorder && mediaRecorder.state === "inactive") {
-        localStorage.removeItem("ime_command"); // Befehl sofort verbrauchen
-        console.log("[GitHub Background] Befehl ausgeführt: START_RECORDING");
-
+    if (data && data.action === "START_RECORDING" && mediaRecorder && mediaRecorder.state === "inactive") {
+        console.log("[GitHub Background] Starte Aufnahme...");
         audioChunks = [];
         mediaRecorder.start();
-        infoBox.innerText = "🔴 Aufnahme läuft (von Wix gesteuert)...";
-        document.body.style.background = "#e6ffe6; transition: background 0.3s;"; // Sichtbarer Hinweis im Tab
+        infoBox.innerText = "🔴 Aufnahme läuft...";
+        document.body.style.backgroundColor = "#e6ffe6";
     }
-    else if (command === "STOP_RECORDING" && mediaRecorder && mediaRecorder.state === "recording") {
-        localStorage.removeItem("ime_command");
-        console.log("[GitHub Background] Befehl ausgeführt: STOP_RECORDING");
-
+    else if (data && data.action === "STOP_RECORDING" && mediaRecorder && mediaRecorder.state === "recording") {
+        console.log("[GitHub Background] Stoppe Aufnahme...");
         mediaRecorder.stop();
         infoBox.innerText = "⏳ Verarbeite Audio...";
-        document.body.style.background = "#ffffff";
+        document.body.style.backgroundColor = "#ffffff";
     }
-}, 100); // Prüft alle 100 Millisekunden
+};
 
 async function sendAudioToBackend(blob) {
     try {
