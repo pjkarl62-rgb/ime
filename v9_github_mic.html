@@ -20,7 +20,7 @@
         .container {
             text-align: center;
             padding: 20px;
-            max-width: 450px;
+            max-width: 500px;
             width: 90%;
             background: transparent;
             display: flex;
@@ -37,8 +37,9 @@
             transform: scale(1.03);
         }
         .logo {
-            /* Logo auf 60vw angepasst */
-            width: 60vw;
+            /* Logo exakt auf 65vw angepasst */
+            width: 65vw;
+            max-width: 350px;
             height: auto;
             margin-bottom: 25px;
             border: none;
@@ -118,9 +119,9 @@
 <body>
 
     <div class="container">
-        <!-- Logo als Klick-Link mit HEIF-Dateiformat -->
+        <!-- Logo als Klick-Link (PNG-Format für universelle Browser-Kompatibilität) -->
         <a onclick="returnToWix()" class="logo-link" title="Click to return">
-            <img src="1000_IME_NEW1.heif" alt="IME Logo" class="logo" id="imeLogo">
+            <img src="1000_IME_NEW1.png" alt="IME Logo" class="logo" id="imeLogo">
         </a>
 
         <h2>IME Voice Assistant</h2>
