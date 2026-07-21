@@ -7,8 +7,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
+            background-color: #ffffff; /* Weißer Hintergrund */
+            color: #222222; /* Dunkler Text für gute Lesbarkeit auf weiß */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -21,20 +21,18 @@
             padding: 20px;
             max-width: 450px;
             width: 90%;
-            /* Kein Rahmen, kein Hintergrund-Kasten */
             background: transparent;
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Logo und Inhalt leicht nach oben verschieben */
+            /* Nach oben verschoben */
             transform: translateY(-40px);
         }
         .logo {
-            /* Um 50% vergrößert (Standard-Annahme z.B. von ~100px auf 150px Breite) */
+            /* Um 50% vergrößert (von standard ~100px auf 150px Breite) */
             width: 150px;
             height: auto;
             margin-bottom: 25px;
-            /* Keinerlei Rahmen oder Schatten */
             border: none;
             box-shadow: none;
             background: transparent;
@@ -43,12 +41,13 @@
             font-size: 26px;
             font-weight: bold;
             margin-bottom: 10px;
+            color: #111111;
         }
         #instruction {
             font-size: 20px;
             font-weight: bold;
             margin-bottom: 25px;
-            color: #ffffff;
+            color: #333333;
         }
         button {
             background-color: #ff4757;
@@ -60,6 +59,7 @@
             border-radius: 10px;
             cursor: pointer;
             transition: background 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
         button:hover {
             background-color: #ff6b81;
@@ -68,7 +68,7 @@
             margin-top: 20px;
             font-size: 18px;
             font-weight: bold;
-            color: #a4b0be;
+            color: #555555;
         }
         .pulse {
             animation: pulse 1.5s infinite;
@@ -83,8 +83,8 @@
 <body>
 
     <div class="container">
-        <!-- Logo (Pfad anpassen, falls dein Bild anders heißt, z.B. logo.png) -->
-        <img src="ime_logo.png" alt="IME Logo" class="logo" id="imeLogo">
+        <!-- Logo aktualisiert auf 1000_IME_NEW1.jpg -->
+        <img src="1000_IME_NEW1.jpg" alt="IME Logo" class="logo" id="imeLogo">
 
         <h2>IME Sprachassistent</h2>
         <p id="instruction">Klicke auf den Button, um die Aufnahme zu starten.</p>
