@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +7,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #ffffff; /* Weißer Hintergrund */
-            color: #222222; /* Dunkler Text für gute Lesbarkeit auf weiß */
+            background-color: #ffffff !important; /* Erzwingt den weißen Hintergrund */
+            color: #222222;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -28,8 +28,16 @@
             /* Nach oben verschoben */
             transform: translateY(-40px);
         }
+        .logo-link {
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        .logo-link:hover {
+            transform: scale(1.03);
+        }
         .logo {
-            /* Um 50% vergrößert (von standard ~100px auf 150px Breite) */
+            /* Um 50% vergrößert (auf 150px Breite) */
             width: 150px;
             height: auto;
             margin-bottom: 25px;
@@ -83,13 +91,15 @@
 <body>
 
     <div class="container">
-        <!-- Logo aktualisiert auf 1000_IME_NEW1.jpg -->
-        <img src="1000_IME_NEW1.jpg" alt="IME Logo" class="logo" id="imeLogo">
+        <!-- Logo als Klick-Link zurück zu Wix -->
+        <a onclick="returnToWix()" class="logo-link" title="Click to return">
+            <img src="1000_IME_NEW1.jpg" alt="IME Logo" class="logo" id="imeLogo">
+        </a>
 
-        <h2>IME Sprachassistent</h2>
-        <p id="instruction">Klicke auf den Button, um die Aufnahme zu starten.</p>
+        <h2>IME Voice Assistant</h2>
+        <p id="instruction">Click the button to start recording.</p>
 
-        <button id="recordButton" onclick="toggleRecording()">🎙️ Aufnahme starten</button>
+        <button id="recordButton" onclick="toggleRecording()">🎙️ Start Recording</button>
 
         <div id="status"></div>
     </div>
@@ -107,9 +117,13 @@
         const statusDiv = document.getElementById("status");
         const instructionP = document.getElementById("instruction");
 
+        function returnToWix() {
+            window.location.href = WIX_REDIRECT_URL;
+        }
+
         async function toggleRecording() {
             if (!isRecording) {
-                // Aufnahme starten
+                // Start recording
                 try {
                     audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(audioStream, { mimeType: 'audio/webm' });
@@ -123,7 +137,7 @@
                     };
 
                     mediaRecorder.onstop = async () => {
-                        instructionP.innerText = "Verarbeite Sprache...";
+                        instructionP.innerText = "Processing speech...";
                         statusDiv.classList.add("pulse");
 
                         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -133,21 +147,21 @@
                     mediaRecorder.start();
                     isRecording = true;
 
-                    recordButton.innerText = "⏹️ Aufnahme stoppen";
-                    recordButton.style.backgroundColor = "#2ed573"; // Grün zum Stoppen
-                    instructionP.innerText = "🎙️ Aufnahme läuft... Sprich jetzt!";
+                    recordButton.innerText = "⏹️ Stop Recording";
+                    recordButton.style.backgroundColor = "#2ed573"; // Green to stop
+                    instructionP.innerText = "🎙️ Recording in progress... Speak now!";
                     statusDiv.classList.add("pulse");
 
                 } catch (error) {
-                    console.error("Mikrofon-Fehler:", error);
-                    instructionP.innerText = "Fehler beim Mikrofon-Zugriff.";
+                    console.error("Microphone error:", error);
+                    instructionP.innerText = "Microphone access error.";
                 }
             } else {
-                // Aufnahme manuell stoppen
+                // Stop recording manually
                 if (mediaRecorder && mediaRecorder.state === "recording") {
                     mediaRecorder.stop();
                     isRecording = false;
-                    recordButton.style.display = "none"; // Button ausblenden während der Verarbeitung
+                    recordButton.style.display = "none"; // Hide button during processing
 
                     if (audioStream) {
                         audioStream.getTracks().forEach(track => track.stop());
@@ -161,7 +175,7 @@
                 const formData = new FormData();
                 formData.append("file", blob, "ime_audio.webm");
 
-                statusDiv.innerText = "Sende an Server...";
+                statusDiv.innerText = "Sending to server...";
 
                 const response = await fetch(WIX_BACKEND_URL, {
                     method: "POST",
@@ -171,19 +185,19 @@
                 const result = await response.json();
 
                 if (!response.ok || !result.success) {
-                    throw new Error(result.error || "Unbekannter Serverfehler");
+                    throw new Error(result.error || "Unknown server error");
                 }
 
-                statusDiv.innerText = "Erfolgreich! Leite weiter...";
+                statusDiv.innerText = "Success! Redirecting...";
 
-                // Zurück zu Wix mit dem Transkript
+                // Return to Wix with transcript
                 window.location.href = WIX_REDIRECT_URL + "?transcript=" + encodeURIComponent(result.transcript);
 
             } catch (error) {
-                console.error("Upload-Fehler:", error);
-                statusDiv.innerText = "Fehler: " + error.message;
+                console.error("Upload error:", error);
+                statusDiv.innerText = "Error: " + error.message;
                 recordButton.style.display = "block";
-                recordButton.innerText = "Nochmal versuchen";
+                recordButton.innerText = "Try Again";
                 recordButton.style.backgroundColor = "#ff4757";
                 isRecording = false;
             }
