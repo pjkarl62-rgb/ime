@@ -9,45 +9,54 @@ html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
     background: #0b0b0b; font-family: Arial, sans-serif;
     display: flex; flex-direction: column; justify-content: center; align-items: center;
+    color: #fff; text-align: center;
 }
 #imageContainer { width: 280px; max-width: 80vw; margin-bottom: 30px; }
 #imeImage { width: 100%; border-radius: 12px; box-shadow: 0 0 25px rgba(54, 154, 196, 0.3); }
-#info { font-size: 18px; color: #888; text-align: center; padding: 0 20px; }
+#info { font-size: 18px; color: #888; margin-bottom: 25px; padding: 0 20px; }
+#returnBtn {
+    background: #00FF66; color: #000; border: none; padding: 15px 30px;
+    font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); display: none;
+    transition: transform 0.2s;
+}
+#returnBtn:active { transform: scale(0.95); }
 </style>
 </head>
 <body>
 
 <div id="imageContainer">
-    <img id="imeImage" src="1000_IME_NEW1.jpg" alt="AI IME">
+    <img id="imeImage" src="1000_IME_NEW1.heif" alt="AI IME">
 </div>
-<div id="info">Initializing Microphone...</div>
+<div id="info">Allow to activate the MICROPHONE...</div>
+<button id="returnBtn">🚀 Back to IME AI (Microphone is activated)</button>
 
 <script>
 let mediaStream = null;
 let mediaRecorder = null;
 let audioChunks = [];
 const infoBox = document.getElementById("info");
+const returnBtn = document.getElementById("returnBtn");
 const wixFrontendUrl = "https://www.visions-real.com/pjkime";
 const channel = new BroadcastChannel('ime_voice_channel');
 
-// 1. Mikrofon beim initialen Laden einmalig anfordern
+// 1. Mikrofon beim Laden anfordern
 async function initBackgroundMic() {
     try {
         mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        infoBox.innerText = "Microphone active! Opening Wix Frontend...";
-
-        // Öffnet Wix im neuen Tab und signalisiert, dass das Mic bereit ist
-        setTimeout(() => {
-            window.open(wixFrontendUrl + "?mic=ready", "_blank");
-            infoBox.innerText = "IME Engine running silently in background. Ready for Wix commands.";
-        }, 1000);
-
+        infoBox.innerText = "Mikrofon erfolgreich freigeschaltet! Klicke unten, um zu Wix zurückzukehren.";
+        returnBtn.style.display = "block"; // Zeigt den Button an, sobald das Mic da ist
     } catch(err) {
-        infoBox.innerText = "Microphone access blocked! Please allow permissions.";
+        infoBox.innerText = "Mikrofon-Zugriff verweigert! Bitte in den Browsereinstellungen erlauben.";
     }
 }
 
-// 2. Horcht auf Befehle aus dem Wix-Frontend über den BroadcastChannel
+// 2. Klick auf den Button führt den Rücksprung aus (vom Nutzer aktiv ausgelöst, daher kein Popup-Blocker-Problem)
+returnBtn.addEventListener("click", () => {
+    window.location.href = wixFrontendUrl + "?mic=ready";
+});
+
+// 3. Horcht auf Befehle aus dem Wix-Frontend über den BroadcastChannel (während die Aufnahme läuft)
 channel.onmessage = async (event) => {
     const data = event.data;
     if (!data) return;
@@ -67,12 +76,10 @@ channel.onmessage = async (event) => {
         };
 
         mediaRecorder.start();
-        infoBox.innerText = "Recording active (triggered from Wix)...";
     }
     else if (data.action === "STOP_RECORDING") {
         if (mediaRecorder && mediaRecorder.state === "recording") {
             mediaRecorder.stop();
-            infoBox.innerText = "Processing audio...";
         }
     }
 };
@@ -82,24 +89,19 @@ async function sendAudioToBackend(blob) {
         const form = new FormData();
         form.append("file", blob, "ime_audio.webm");
 
-        const response = "https://www.visions-real.com/_functions/v9_voice_upload";
-        const fetchRes = await fetch(response, {
+        const response = await fetch("https://www.visions-real.com/_functions/v9_voice_upload", {
             method: "POST",
             body: form
         });
 
-        const result = await fetchRes.json();
+        const result = await response.json();
         if(result && result.transcript){
             const transcript = result.transcript.trim();
-            infoBox.innerText = "Sending transcript to Wix...";
-
-            // Öffnet Wix im neuen Tab mit dem fertigen Text
-            window.open(wixFrontendUrl + "?transcript=" + encodeURIComponent(transcript), "_blank");
-        } else {
-            infoBox.innerText = "Engine Ready. Waiting for Wix...";
+            // Sobald der Text da ist, springt GitHub automatisch mit dem Text zu Wix zurück
+            window.location.href = wixFrontendUrl + "?transcript=" + encodeURIComponent(transcript);
         }
     } catch(error) {
-        infoBox.innerText = "Error uploading audio. Engine Ready.";
+        infoBox.innerText = "Fehler beim Hochladen der Audio-Datei.";
     }
 }
 
