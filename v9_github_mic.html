@@ -3,60 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IME Background Voice Engine</title>
+<title>IME Voice Engine</title>
 <style>
 html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
     background: #0b0b0b; font-family: Arial, sans-serif;
     display: flex; flex-direction: column; justify-content: center; align-items: center;
-    color: #fff; text-align: center;
+    color: #fff; text-align: center; user-select: none;
 }
 #imageContainer { width: 280px; max-width: 80vw; margin-bottom: 30px; }
 #imeImage { width: 100%; border-radius: 12px; box-shadow: 0 0 25px rgba(54, 154, 196, 0.3); }
 #info { font-size: 18px; color: #888; margin-bottom: 25px; padding: 0 20px; }
-#returnBtn {
-    background: #00FF66; color: #000; border: none; padding: 15px 30px;
-    font-size: 18px; font-weight: bold; border-radius: 30px; cursor: pointer;
-    box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); display: none;
-    transition: transform 0.2s;
+#actionBtn {
+    background: #00FF66; color: #000; border: none; padding: 18px 35px;
+    font-size: 20px; font-weight: bold; border-radius: 40px; cursor: pointer;
+    box-shadow: 0 0 20px rgba(0, 255, 102, 0.5); transition: transform 0.2s;
 }
-#returnBtn:active { transform: scale(0.95); }
+#actionBtn:active { transform: scale(0.95); }
 </style>
 </head>
 <body>
 
 <div id="imageContainer">
-    <img id="imeImage" src="1000_IME_NEW1.heif" alt="AI IME">
+    <img id="imeImage" src="1000_IME_NEW1.jpg" alt="AI IME">
 </div>
-<div id="info">Allow to activate the MICROPHONE...</div>
-<button id="returnBtn">🚀 Back to IME AI (Microphone is activated)</button>
+<div id="info">Bitte einmalig Mikrofon freigeben und verbinden</div>
+<button id="actionBtn">🎤 Mikrofon aktivieren</button>
 
 <script>
 let mediaStream = null;
 let mediaRecorder = null;
 let audioChunks = [];
 const infoBox = document.getElementById("info");
-const returnBtn = document.getElementById("returnBtn");
+const actionBtn = document.getElementById("actionBtn");
 const wixFrontendUrl = "https://www.visions-real.com/pjkime";
 const channel = new BroadcastChannel('ime_voice_channel');
 
-// 1. Mikrofon beim Laden anfordern
-async function initBackgroundMic() {
-    try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        infoBox.innerText = "Mikrofon erfolgreich freigeschaltet! Klicke unten, um zu Wix zurückzukehren.";
-        returnBtn.style.display = "block"; // Zeigt den Button an, sobald das Mic da ist
-    } catch(err) {
-        infoBox.innerText = "Mikrofon-Zugriff verweigert! Bitte in den Browsereinstellungen erlauben.";
+// Durch den echten Klick des Benutzers auf den Button erlaubt der Browser (auch Firefox) sofort das Mikrofon und das Öffnen von Tabs
+actionBtn.addEventListener("click", async () => {
+    if (!mediaStream) {
+        try {
+            // Mikrofon anfordern
+            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            infoBox.innerText = "Mikrofon aktiv! Klicke nun, um zu Wix zurückzukehren.";
+            actionBtn.innerText = "🚀 Zurück zu Wix";
+            return; // Nächster Klick öffnet Wix
+        } catch (err) {
+            infoBox.innerText = "Mikrofon-Zugriff verweigert! Bitte in Browser-Einstellungen erlauben.";
+            return;
+        }
     }
-}
 
-// 2. Klick auf den Button führt den Rücksprung aus (vom Nutzer aktiv ausgelöst, daher kein Popup-Blocker-Problem)
-returnBtn.addEventListener("click", () => {
-    window.location.href = wixFrontendUrl + "?mic=ready";
+    // Wenn Mikrofon bereits da ist, öffnet dieser Klick Wix im neuen Tab (garantiert ohne Popup-Blocker)
+    const newWindow = window.open(wixFrontendUrl + "?mic=ready", "_blank");
+    if (!newWindow) {
+        // Fallback falls der Browser es blockiert hat
+        window.location.href = wixFrontendUrl + "?mic=ready";
+    }
 });
 
-// 3. Horcht auf Befehle aus dem Wix-Frontend über den BroadcastChannel (während die Aufnahme läuft)
+// Horcht währenddessen auf Start-/Stopp-Befehle aus dem Wix-Frontend
 channel.onmessage = async (event) => {
     const data = event.data;
     if (!data) return;
@@ -97,15 +103,13 @@ async function sendAudioToBackend(blob) {
         const result = await response.json();
         if(result && result.transcript){
             const transcript = result.transcript.trim();
-            // Sobald der Text da ist, springt GitHub automatisch mit dem Text zu Wix zurück
-            window.location.href = wixFrontendUrl + "?transcript=" + encodeURIComponent(transcript);
+            // Öffnet Wix im neuen Tab mit dem fertigen Text (durch echten Funktionskontext stabiler)
+            window.open(wixFrontendUrl + "?transcript=" + encodeURIComponent(transcript), "_blank");
         }
     } catch(error) {
         infoBox.innerText = "Fehler beim Hochladen der Audio-Datei.";
     }
 }
-
-window.addEventListener("load", initBackgroundMic);
 </script>
 
 </body>
