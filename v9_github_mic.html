@@ -37,10 +37,10 @@
             transform: scale(1.03);
         }
         .logo {
-            /* Responsiv auf 35vh angepasst für Smartphone & Desktop */
+            /* Logo auf 60vw angepasst */
             width: 60vw;
+            max-width: 250px;
             height: auto;
-            max-width: 100%;
             margin-bottom: 25px;
             border: none;
             box-shadow: none;
@@ -60,7 +60,6 @@
             color: #333333;
         }
 
-        /* Basis Button-Design ohne Rand mit sanftem Glow */
         button {
             color: white;
             border: none;
@@ -76,14 +75,12 @@
             transform: scale(0.98);
         }
 
-        /* Start-Button (Grün mit sanftem Glow & Pulsieren) */
         .btn-start {
             background-color: #2ed573;
             box-shadow: 0 0 15px rgba(46, 213, 115, 0.5);
             animation: glowGreen 2s infinite;
         }
 
-        /* Stop-Button (Rot mit sanftem Glow & Pulsieren) */
         .btn-stop {
             background-color: #ff4757;
             box-shadow: 0 0 15px rgba(255, 71, 87, 0.6);
@@ -97,7 +94,6 @@
             color: #555555;
         }
 
-        /* Pulsierender Glow-Effekt für die Buttons */
         @keyframes glowGreen {
             0% { box-shadow: 0 0 10px rgba(46, 213, 115, 0.4); transform: scale(1); }
             50% { box-shadow: 0 0 22px rgba(46, 213, 115, 0.8); transform: scale(1.03); }
@@ -123,7 +119,7 @@
 <body>
 
     <div class="container">
-        <!-- Logo als Klick-Link zurück zu Wix -->
+        <!-- Logo als Klick-Link mit HEIF-Dateiformat -->
         <a onclick="returnToWix()" class="logo-link" title="Click to return">
             <img src="1000_IME_NEW1.heif" alt="IME Logo" class="logo" id="imeLogo">
         </a>
@@ -131,7 +127,6 @@
         <h2>IME Voice Assistant</h2>
         <p id="instruction">Click the button to start recording.</p>
 
-        <!-- Standardmäßig grüner Start-Button ohne Rand -->
         <button id="recordButton" class="btn-start" onclick="toggleRecording()">🎙️ Start Recording</button>
 
         <div id="status"></div>
@@ -156,7 +151,6 @@
 
         async function toggleRecording() {
             if (!isRecording) {
-                // Start recording
                 try {
                     audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(audioStream, { mimeType: 'audio/webm' });
@@ -180,7 +174,6 @@
                     mediaRecorder.start();
                     isRecording = true;
 
-                    // Wechsel zu Rot und Stop-Zustand
                     recordButton.innerText = "⏹️ Stop Recording";
                     recordButton.className = "btn-stop";
                     instructionP.innerText = "🎙️ Recording in progress... Speak now!";
@@ -191,11 +184,10 @@
                     instructionP.innerText = "Microphone access error.";
                 }
             } else {
-                // Stop recording manually
                 if (mediaRecorder && mediaRecorder.state === "recording") {
                     mediaRecorder.stop();
                     isRecording = false;
-                    recordButton.style.display = "none"; // Hide button during processing
+                    recordButton.style.display = "none";
 
                     if (audioStream) {
                         audioStream.getTracks().forEach(track => track.stop());
@@ -224,7 +216,6 @@
 
                 statusDiv.innerText = "Success! Redirecting...";
 
-                // Return to Wix with transcript
                 window.location.href = WIX_REDIRECT_URL + "?transcript=" + encodeURIComponent(result.transcript);
 
             } catch (error) {
