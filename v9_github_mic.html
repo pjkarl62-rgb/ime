@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IME Voice Engine (Background)</title>
+<title>IME Voice Engine</title>
 <style>
 html, body {
     margin: 0; padding: 0; width: 100vw; height: 100vh;
@@ -13,19 +13,34 @@ html, body {
     box-sizing: border-box;
 }
 #imageContainer {
-    width: 60vw; max-width: 600px; min-width: 250px; margin-bottom: 4vh;
+    width: 60vw;
+    max-width: 600px;
+    min-width: 250px;
+    margin-bottom: 4vh;
 }
 #imeImage {
-    width: 100%; height: auto; border-radius: 12px;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
     box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
 }
-#info { font-size: 20px; color: #555; margin-bottom: 3vh; padding: 0 2vw; }
-#actionBtn {
-    background: #00FF66; color: #000; border: none; padding: 2vh 4vw;
-    font-size: 22px; font-weight: bold; border-radius: 40px; cursor: pointer;
-    box-shadow: 0 0 20px rgba(0, 255, 102, 0.4); transition: transform 0.2s;
+#info {
+    font-size: 2.2vw;
+    min-font-size: 16px;
+    color: #555;
+    margin-bottom: 3vh;
+    padding: 0 2vw;
 }
-#actionBtn:active { transform: scale(0.95); }
+@media (min-width: 1024px) {
+    #info { font-size: 20px; }
+}
+.btn {
+    background: #00FF66; color: #000; border: none; padding: 2.5vh 4.5vw;
+    font-size: 22px; font-weight: bold; border-radius: 40px; cursor: pointer;
+    box-shadow: 0 0 20px rgba(0, 255, 102, 0.4); transition: transform 0.1s;
+}
+.btn:active { transform: scale(0.95); }
+#recordContainer { display: none; flex-direction: column; align-items: center; }
 </style>
 </head>
 <body>
@@ -33,85 +48,76 @@ html, body {
 <div id="imageContainer">
     <img id="imeImage" src="1000_IME_NEW1.jpg" alt="AI IME">
 </div>
-<div id="info">Bitte einmalig Mikrofon freigeben und verbinden</div>
-<button id="actionBtn">🎤 Mikrofon aktivieren</button>
+
+<div id="info">Bitte einmalig das Mikrofon freigeben</div>
+
+<!-- Schritt 1: Mikrofon-Freigabe Button -->
+<button id="authBtn" class="btn">🎤 Mikrofon aktivieren</button>
+
+<!-- Schritt 2: Aufnahme-Container (erscheint erst nach Freigabe) -->
+<div id="recordContainer">
+    <button id="micBtn" class="btn">🔴 Aufnahme starten</button>
+</div>
 
 <script>
 let mediaStream = null;
 let mediaRecorder = null;
 let audioChunks = [];
 const infoBox = document.getElementById("info");
-const actionBtn = document.getElementById("actionBtn");
+const authBtn = document.getElementById("authBtn");
+const recordContainer = document.getElementById("recordContainer");
+const micBtn = document.getElementById("micBtn");
 const wixFrontendUrl = "https://www.visions-real.com/pjkime";
 
-// Der plattformübergreifende Kanal
-const channel = new BroadcastChannel('ime_global_voice_channel');
+// 1. Mikrofon-Freigabe per echtem Nutzer-Klick auslösen
+authBtn.addEventListener("click", async () => {
+    try {
+        infoBox.innerText = "Frage Mikrofon-Berechtigung an...";
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-console.log("[GitHub Background] Engine gestartet. Horche auf Broadcasts...");
-
-// 1. Mikrofon freigeben
-actionBtn.addEventListener("click", async () => {
-    if (!mediaStream) {
-        try {
-            console.log("[GitHub Background] Fordere Mikrofon an...");
-            mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            console.log("[GitHub Background] Mikrofon erfolgreich!");
-
-            mediaRecorder = new MediaRecorder(mediaStream, { mimeType: "audio/webm" });
-
-            mediaRecorder.ondataavailable = e => {
-                if (e.data.size > 0) audioChunks.push(e.data);
-            };
-
-            mediaRecorder.onstop = async () => {
-                console.log("[GitHub Background] Recorder gestoppt. Sende Audio an Backend...");
-                if (audioChunks.length > 0) {
-                    const blob = new Blob(audioChunks, { type: "audio/webm" });
-                    await sendAudioToBackend(blob);
-                } else {
-                    infoBox.innerText = "Keine Audiodaten aufgenommen.";
-                }
-            };
-
-            infoBox.innerText = "Mikrofon aktiv! Klicke nun, um Wix im neuen Tab zu öffnen.";
-            actionBtn.innerText = "🚀 Wix in neuem Tab öffnen";
-            return;
-        } catch (err) {
-            console.error("[GitHub Background] Mikrofon-Fehler:", err);
-            infoBox.innerText = "Mikrofon-Zugriff verweigert!";
-            return;
-        }
-    }
-
-    console.log("[GitHub Background] Öffne Wix im neuen Tab...");
-    const openedWindow = window.open(wixFrontendUrl + "?mic=ready", "_blank");
-    if (!openedWindow) {
-        alert("Bitte Pop-ups erlauben!");
-    } else {
-        infoBox.innerText = "IME Engine läuft unsichtbar im Hintergrund.";
-        actionBtn.style.display = "none";
+        // Bei Erfolg: Verstecke den Aktivierungs-Button und zeige den Aufnahme-Button
+        authBtn.style.display = "none";
+        recordContainer.style.display = "flex";
+        infoBox.innerText = "Mikrofon aktiv! Drücke zum Aufnehmen.";
+    } catch (err) {
+        infoBox.innerText = "Mikrofon-Zugriff verweigert! Bitte in den Browsereinstellungen erlauben.";
     }
 });
 
-// 2. Empfängt die Befehle direkt aus dem Wix-Tab über den BroadcastChannel
-channel.onmessage = (event) => {
-    const data = event.data;
-    console.log("[GitHub Background] Broadcast empfangen:", data);
+// 2. Aufnahme Logik (Klick zum Starten / Klick zum Stoppen)
+let isRecording = false;
 
-    if (data && data.action === "START_RECORDING" && mediaRecorder && mediaRecorder.state === "inactive") {
-        console.log("[GitHub Background] Starte Aufnahme...");
+micBtn.addEventListener("click", async () => {
+    if (!mediaStream) return;
+
+    if (!isRecording) {
+        // START DER AUFNAHME
+        isRecording = true;
         audioChunks = [];
+        mediaRecorder = new MediaRecorder(mediaStream, { mimeType: "audio/webm" });
+
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+
+        mediaRecorder.onstop = async () => {
+            infoBox.innerText = "Verarbeite Audio...";
+            if (audioChunks.length > 0) {
+                const blob = new Blob(audioChunks, { type: "audio/webm" });
+                await sendAudioToBackend(blob);
+            }
+        };
+
         mediaRecorder.start();
-        infoBox.innerText = "🔴 Aufnahme läuft...";
-        document.body.style.backgroundColor = "#e6ffe6";
-    }
-    else if (data && data.action === "STOP_RECORDING" && mediaRecorder && mediaRecorder.state === "recording") {
-        console.log("[GitHub Background] Stoppe Aufnahme...");
+        micBtn.style.backgroundColor = "#ff3333";
+        micBtn.style.color = "#fff";
+        micBtn.innerText = "⏹️ Aufnahme stoppen";
+        infoBox.innerText = "Aufnahme läuft... (Nochmal drücken zum Stoppen)";
+    } else {
+        // STOPP DER AUFNAHME
+        isRecording = false;
         mediaRecorder.stop();
-        infoBox.innerText = "⏳ Verarbeite Audio...";
-        document.body.style.backgroundColor = "#ffffff";
+        micBtn.style.display = "none";
     }
-};
+});
 
 async function sendAudioToBackend(blob) {
     try {
@@ -124,19 +130,20 @@ async function sendAudioToBackend(blob) {
         });
 
         const result = await response.json();
-        console.log("[GitHub Background] Backend Antwort:", result);
-
         if (result && result.transcript) {
             const transcript = result.transcript.trim();
-            infoBox.innerText = "✅ Transkript erfolgreich! Öffne Wix...";
-            window.open(wixFrontendUrl + "?transcript=" + encodeURIComponent(transcript), "_blank");
-            infoBox.innerText = "Bereit für den nächsten Befehl.";
+            infoBox.innerText = "Fertig! Kehre zu Wix zurück...";
+            window.location.href = wixFrontendUrl + "?transcript=" + encodeURIComponent(transcript);
         } else {
-            infoBox.innerText = "⚠️ Kein Text erkannt vom Backend.";
+            infoBox.innerText = "Kein Text erkannt. Bitte erneut versuchen.";
+            micBtn.style.display = "block";
+            micBtn.style.backgroundColor = "#00FF66";
+            micBtn.style.color = "#000";
+            micBtn.innerText = "🔴 Erneut aufnehmen";
         }
     } catch (error) {
-        console.error("[GitHub Background] Backend Fehler:", error);
-        infoBox.innerText = "❌ Fehler beim Upload (Siehe Konsole).";
+        infoBox.innerText = "Fehler beim Backend-Upload.";
+        micBtn.style.display = "block";
     }
 }
 </script>
